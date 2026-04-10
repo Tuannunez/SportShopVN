@@ -1,6 +1,6 @@
 <?php
 
-define('BASE_URL',          'http://localhost/BaseExam/');
+define('BASE_URL',          'http://localhost/SportShopVN/SportShopVN');
 
 define('PATH_ROOT',         __DIR__ . '/../');
 
@@ -20,8 +20,15 @@ define('DB_HOST',     'localhost');
 define('DB_PORT',     '3306');
 define('DB_USERNAME', 'root');
 define('DB_PASSWORD', '');
-define('DB_NAME',     '');
+define('DB_NAME',     'sportshopvn');
 define('DB_OPTIONS', [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ]);
+
+// Kết nối MySQLi để hỗ trợ các file view dùng trực tiếp $conn
+$conn = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT);
+if ($conn->connect_error) {
+    die('Lỗi kết nối cơ sở dữ liệu: ' . $conn->connect_error);
+}
+$conn->set_charset('utf8mb4');

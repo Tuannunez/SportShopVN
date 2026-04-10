@@ -9,6 +9,7 @@
 
     <!-- Latest compiled and minified CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/admin.css">
 
     <!-- Latest compiled JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -24,8 +25,16 @@
         </ul>
     </nav>
 
+
     <div class="container">
         <h1 class="mt-3 mb-3"><?= $title ?? 'Home' ?></h1>
+
+        <?php
+        session_start();
+        if (isset($_SESSION['admin'])) {
+            echo '<div class="alert alert-success">Xin chào, <b>' . htmlspecialchars($_SESSION['admin']['name']) . '</b>!</div>';
+        }
+        ?>
 
         <div class="row">
             <?php
