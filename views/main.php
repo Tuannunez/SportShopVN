@@ -32,7 +32,7 @@
         <?php
         session_start();
         if (isset($_SESSION['admin'])) {
-            echo '<div class="alert alert-success">Xin chào, <b>' . htmlspecialchars($_SESSION['admin']['name']) . '</b>!</div>';
+            echo '<div class="user-greeting">👤 Xin chào, <b>' . htmlspecialchars($_SESSION['admin']['name']) . '</b>!</div>';
         }
         ?>
 
@@ -44,6 +44,27 @@
             ?>
         </div>
     </div>
+
+
+<style>
+    .user-greeting {
+        background: #f0f9ff;
+        border: 1px solid #b6e0fe;
+        color: #0a3d62;
+        font-size: 18px;
+        border-radius: 8px;
+        padding: 12px 20px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        display: inline-block;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: background 0.2s;
+    }
+    .user-greeting b {
+        color: #0074d9;
+    }
+</style>
 
 </body>
 
