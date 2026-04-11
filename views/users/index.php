@@ -27,7 +27,7 @@ $isLogin = isset($_SESSION['user']);
     <div class="banner-content">
         <h1>Chào mừng đến với SportShopVN</h1>
         <p>Khám phá hàng trăm sản phẩm thời trang thể thao mới nhất, giá tốt nhất!</p>
-       
+        <a href="#" class="banner-btn">Mua ngay</a>
     </div>
 </div>
 

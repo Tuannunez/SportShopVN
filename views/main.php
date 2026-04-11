@@ -30,9 +30,18 @@
         <h1 class="mt-3 mb-3"><?= $title ?? 'Home' ?></h1>
 
         <?php
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        // Nếu là admin thì chào admin, nếu là user thì chuyển hướng sang giao diện user
         if (isset($_SESSION['admin'])) {
-            echo '<div class="user-greeting">👤 Xin chào, <b>' . htmlspecialchars($_SESSION['admin']['name']) . '</b>!</div>';
+            echo '<div class="user-greeting"> Xin chào, <b>' . htmlspecialchars($_SESSION['admin']['name']) . '</b>!</div>';
+        } elseif (isset($_SESSION['user'])) {
+            header('Location: ' . BASE_URL . '/views/users/index.php');
+            exit;
+        } else {
+            echo '<div style="margin-bottom:18px;">'
+                . '<a class="btn btn-primary me-2" href="' . BASE_URL . '/views/users/login.php">Đăng nhập</a>'
+                . '<a class="btn btn-success" href="' . BASE_URL . '/views/users/register.php">Đăng ký</a>'
+                . '</div>';
         }
         ?>
 
