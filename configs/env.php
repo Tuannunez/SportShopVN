@@ -1,6 +1,6 @@
 <?php
 
-define('BASE_URL',          'http://localhost/SportShopVN/SportShopVN');
+define('BASE_URL',          'http://localhost/SportShopVN');
 
 define('PATH_ROOT',         __DIR__ . '/../');
 
