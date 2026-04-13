@@ -34,19 +34,47 @@ $isLogin = isset($_SESSION['user']);
 <main class="product-main">
     <h2 class="section-title">Sản phẩm mới</h2>
     <div class="product-grid">
-        <!-- Demo sản phẩm, bạn có thể thay bằng vòng lặp PHP lấy từ DB -->
-        <?php for ($i = 1; $i <= 8; $i++): ?>
+        <?php
+        // Lấy danh sách sản phẩm từ database
+        $sql = "SELECT * FROM products ORDER BY id DESC LIMIT 20";
+        $result = $conn->query($sql);
+        if ($result && $result->num_rows > 0):
+            while ($row = $result->fetch_assoc()):
+        ?>
         <div class="product-card">
             <div class="product-img">
-                <img src="https://via.placeholder.com/220x220?text=Product+<?= $i ?>" alt="Sản phẩm <?= $i ?>">
+                <img src="<?= !empty($row['image']) ? BASE_ASSETS_UPLOADS . $row['image'] : 'https://via.placeholder.com/220x220?text=No+Image' ?>" alt="<?= htmlspecialchars($row['name']) ?>">
             </div>
             <div class="product-info">
-                <div class="product-name">Sản phẩm <?= $i ?></div>
-                <div class="product-price">Giá: <?= number_format(199000 + $i*10000) ?>đ</div>
+                <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
+                <div class="product-price">Giá: <?= number_format($row['price']) ?>đ</div>
+                <a href="product_detail.php?id=<?= $row['id'] ?>" class="detail-btn">Xem chi tiết</a>
                 <button class="buy-btn">Mua ngay</button>
+            <style>
+            .detail-btn {
+                display: inline-block;
+                background: #fff;
+                color: #1976d2;
+                border: 1.5px solid #1976d2;
+                border-radius: 6px;
+                padding: 7px 18px;
+                font-size: 15px;
+                font-weight: 500;
+                margin-right: 8px;
+                margin-bottom: 6px;
+                text-decoration: none;
+                transition: background 0.2s, color 0.2s;
+            }
+            .detail-btn:hover {
+                background: #1976d2;
+                color: #fff;
+            }
+            </style>
             </div>
         </div>
-        <?php endfor; ?>
+        <?php endwhile; else: ?>
+            <div>Chưa có sản phẩm nào.</div>
+        <?php endif; ?>
     </div>
 </main>
 <style>

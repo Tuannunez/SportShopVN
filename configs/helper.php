@@ -16,10 +16,13 @@ if (!function_exists('debug')) {
 if (!function_exists('upload_file')) {
     function upload_file($folder, $file)
     {
-        $targetFile = $folder . '/' . time() . '-' . $file["name"];
+        // Loại bỏ dấu / ở đầu nếu có
+        $fileName = time() . '-' . $file["name"];
+        $targetFile = ($folder ? rtrim($folder, '/'). '/' : '') . $fileName;
 
         if (move_uploaded_file($file["tmp_name"], PATH_ASSETS_UPLOADS . $targetFile)) {
-            return $targetFile;
+          
+            return ltrim($targetFile, '/');
         }
 
         throw new Exception('Upload file không thành công!');
