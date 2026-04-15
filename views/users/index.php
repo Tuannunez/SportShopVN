@@ -78,16 +78,85 @@ slider.parentElement.addEventListener('mouseleave', startAuto);
 showSlide(0); startAuto();
 </script>
 
-<main class="product-main">
-    <h2 class="section-title">Sản phẩm mới</h2>
-    <div class="product-grid">
-        <?php
-        // Lấy danh sách sản phẩm từ database
-        $sql = "SELECT * FROM products ORDER BY id DESC LIMIT 20";
-        $result = $conn->query($sql);
-        if ($result && $result->num_rows > 0):
-            while ($row = $result->fetch_assoc()):
-        ?>
+<?php
+// Lấy dữ liệu lọc
+// Lấy dữ liệu lọc và sắp xếp
+$keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
+$location = isset($_GET['location']) ? trim($_GET['location']) : '';
+$color = isset($_GET['color']) ? trim($_GET['color']) : '';
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
+
+// Tạo câu SQL tìm kiếm và lọc
+$sql = "SELECT * FROM products WHERE 1";
+if ($keyword !== '') {
+    $keyword_sql = mysqli_real_escape_string($conn, $keyword);
+    $sql .= " AND name LIKE '%$keyword_sql%'";
+}
+if ($location !== '') {
+    $location_sql = mysqli_real_escape_string($conn, $location);
+    $sql .= " AND location = '$location_sql'";
+}
+if ($color !== '') {
+    $color_sql = mysqli_real_escape_string($conn, $color);
+    $sql .= " AND color = '$color_sql'";
+}
+// Sắp xếp
+if ($sort == 'sales') $sql .= " ORDER BY view_count DESC";
+elseif ($sort == 'price_asc') $sql .= " ORDER BY price ASC";
+elseif ($sort == 'price_desc') $sql .= " ORDER BY price DESC";
+else $sql .= " ORDER BY id DESC";
+$sql .= " LIMIT 20";
+$result = $conn->query($sql);
+?>
+<div style="display:flex;max-width:1200px;margin:30px auto 0 auto;gap:24px;padding:0 10px;">
+    <!-- Sidebar bộ lọc -->
+    <aside style="width:200px;flex-shrink:0;">
+        <form id="filterForm" method="GET" action="index.php" style="background:#fff;padding:18px 18px 12px 18px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.07);margin-bottom:24px;">
+            <div style="font-weight:bold;font-size:17px;margin-bottom:18px;display:flex;align-items:center;gap:8px;">📑 Bộ lọc tìm kiếm</div>
+            <div style="margin-bottom:18px;">
+                <div style="font-weight:500;margin-bottom:10px;">Nơi Bán</div>
+                <?php $locs = ['Hà Nội', 'Đà Nẵng', 'Phú Thọ', 'TP.HCM']; foreach($locs as $l): ?>
+                    <label style="display:block;margin-bottom:10px;font-size:14px;cursor:pointer;color:#333;">
+                        <input type="radio" name="location" value="<?= $l ?>" <?= $location==$l?'checked':'' ?> onchange="this.form.submit()"> <?= $l ?>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+            <div style="margin-bottom:18px;">
+                <div style="font-weight:500;margin-bottom:10px;">Màu sắc</div>
+                <label style="display:block;margin-bottom:10px;font-size:14px;cursor:pointer;color:#333;"><input type="radio" name="color" value="Trắng" <?= $color=='Trắng'?'checked':'' ?> onchange="this.form.submit()"> Trắng</label>
+                <label style="display:block;margin-bottom:10px;font-size:14px;cursor:pointer;color:#333;"><input type="radio" name="color" value="Xanh" <?= $color=='Xanh'?'checked':'' ?> onchange="this.form.submit()"> Xanh</label>
+            </div>
+            <a href="index.php" style="color:#ee4d2d;text-decoration:none;font-size:13px;">Xóa tất cả</a>
+            <!-- Giữ lại keyword khi lọc -->
+            <?php if($keyword!==''): ?><input type="hidden" name="keyword" value="<?= htmlspecialchars($keyword) ?>"><?php endif; ?>
+        </form>
+    </aside>
+    <main class="product-main" style="flex:1;">
+        <h2 class="section-title">Sản phẩm mới</h2>
+        <!-- Sort bar -->
+        <div style="background:rgba(0,0,0,.03);padding:13px 20px;display:flex;align-items:center;gap:15px;border-radius:2px;margin-bottom:15px;font-size:14px;">
+            <span>Sắp xếp theo</span>
+            <?php
+            // Hàm build lại URL giữ các filter
+            function buildSortUrl($sortValue) {
+                $params = $_GET;
+                $params['sort'] = $sortValue;
+                return 'index.php?' . http_build_query($params);
+            }
+            ?>
+            <button class="sort-btn<?= $sort=='newest'?' active':'' ?>" onclick="location.href='<?= buildSortUrl('newest') ?>'" style="background:<?= $sort=='newest'?'#ee4d2d':'#fff' ?>;color:<?= $sort=='newest'?'#fff':'#222' ?>;border:none;padding:7px 15px;cursor:pointer;border-radius:2px;">Mới nhất</button>
+            <button class="sort-btn<?= $sort=='sales'?' active':'' ?>" onclick="location.href='<?= buildSortUrl('sales') ?>'" style="background:<?= $sort=='sales'?'#ee4d2d':'#fff' ?>;color:<?= $sort=='sales'?'#fff':'#222' ?>;border:none;padding:7px 15px;cursor:pointer;border-radius:2px;">Bán chạy</button>
+            <select style="padding:7px;border:1px solid #ddd;" onchange="location.href=this.value">
+                <option value="<?= buildSortUrl('') ?>">Giá</option>
+                <option value="<?= buildSortUrl('price_asc') ?>" <?= $sort=='price_asc'?'selected':'' ?>>Giá: Thấp đến Cao</option>
+                <option value="<?= buildSortUrl('price_desc') ?>" <?= $sort=='price_desc'?'selected':'' ?>>Giá: Cao đến Thấp</option>
+            </select>
+        </div>
+        <div class="product-grid">
+            <?php
+            if ($result && $result->num_rows > 0):
+                while ($row = $result->fetch_assoc()):
+            ?>
         <div class="product-card">
             <div class="product-img">
                 <img src="<?= !empty($row['image']) ? BASE_ASSETS_UPLOADS . $row['image'] : 'https://via.placeholder.com/220x220?text=No+Image' ?>" alt="<?= htmlspecialchars($row['name']) ?>">
