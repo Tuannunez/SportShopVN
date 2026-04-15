@@ -32,6 +32,7 @@ $isLogin = isset($_SESSION['user']);
 
         <div class="cart">
             <a href="cart.php">🛒</a>
+                <a href="order_history.php" class="btn btn-outline-primary" style="padding:6px 16px;font-size:15px;border-radius:6px;font-weight:500;">Đơn hàng</a>
         </div>
     </div>
 

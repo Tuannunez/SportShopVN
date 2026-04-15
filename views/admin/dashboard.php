@@ -21,10 +21,10 @@ if (!isset($_SESSION['admin'])) {
 
 <div class="sidebar">
     <h2>SportShopVN</h2>
-    <a href="#">Dashboard</a>
+    <a href="dashboard.php" class="active">Dashboard</a>
     <a href="product_san_pham.php">Sản phẩm</a>
     <a href="#">Danh mục</a>
-    <a href="#">Đơn hàng</a>
+    <a href="admin_orders.php">Đơn hàng</a>
     <a href="#">User</a>
     <a href="logout.php">Đăng xuất</a>
 </div>

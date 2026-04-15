@@ -52,6 +52,7 @@ if ($rv && $rv->num_rows > 0) {
 
         <div class="cart">
             <a href="cart.php">🛒</a>
+                <a href="order_history.php" class="btn btn-outline-primary" style="padding:6px 16px;font-size:15px;border-radius:6px;font-weight:500;">Đơn hàng</a>
         </div>
     </div>
 
@@ -121,6 +122,45 @@ if ($rv && $rv->num_rows > 0) {
                     <button type="button" class="btn-buy" id="buy-now">Mua ngay</button>
                     <a href="index.php" class="btn-back">Quay lại</a>
                 </form>
+                <script>
+                document.getElementById('buy-now').onclick = function() {
+                    var quantity = document.getElementById('quantity').value;
+                    window.location.href = 'checkout.php?id=<?= $product['id'] ?>&quantity=' + quantity;
+                };
+                </script>
+
+                <!-- Đánh giá và bình luận -->
+                <div id="review-box" style="margin-top:18px;">
+                    <?php if ($reviews): foreach ($reviews as $r): ?>
+                        <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eee;">
+                            <b><?= htmlspecialchars($r['user_name']) ?></b> - <span style="color:#fbc02d;"><?= str_repeat('★', (int)$r['rating']) . str_repeat('☆', 5-(int)$r['rating']) ?></span>
+                            <div style="margin:4px 0 0 0;"><?= nl2br(htmlspecialchars($r['comment'])) ?></div>
+                            <div style="font-size:12px;color:#888;"><?= date('d/m/Y H:i', strtotime($r['created_at'])) ?></div>
+                        </div>
+                    <?php endforeach; else: ?>
+                        <div>Chưa có đánh giá nào.</div>
+                    <?php endif; ?>
+
+                    <?php if (isset($_SESSION['user'])): ?>
+                    <form id="review-form" style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <input type="hidden" name="product_id" value="<?= $id ?>">
+                        <label>Đánh giá: </label>
+                        <select name="rating" required style="margin:0 8px 0 0;">
+                            <option value="">Chọn sao</option>
+                            <option value="5">★★★★★ - Tuyệt vời</option>
+                            <option value="4">★★★★☆ - Tốt</option>
+                            <option value="3">★★★☆☆ - Trung bình</option>
+                            <option value="2">★★☆☆☆ - Kém</option>
+                            <option value="1">★☆☆☆☆ - Rất tệ</option>
+                        </select>
+                        <input type="text" name="comment" placeholder="Viết bình luận..." style="width:220px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;" required>
+                        <button type="submit" class="btn-buy" style="padding:8px 18px;font-size:15px;">Gửi</button>
+                        <span id="review-msg" style="margin-left:10px;color:#388e3c;font-weight:500;"></span>
+                    </form>
+                    <?php else: ?>
+                    <div style="margin-top:12px;color:#888;">Vui lòng <a href="login.php">đăng nhập</a> để đánh giá.</div>
+                    <?php endif; ?>
+                </div>
                 <div id="cart-message" style="margin-top:10px;color:green;font-weight:500;"></div>
             </div>
         </div>
@@ -141,47 +181,17 @@ if ($rv && $rv->num_rows > 0) {
         .product-detail-label { font-weight: 500; color: #444; margin-right: 10px; }
         .product-detail-select { padding: 8px 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
         </style>
-        <div id="review-list">
-            <?php if ($reviews): foreach ($reviews as $r): ?>
-                <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eee;">
-                    <b><?= htmlspecialchars($r['user_name']) ?></b> - <span style="color:#fbc02d;"><?= str_repeat('★', (int)$r['rating']) . str_repeat('☆', 5-(int)$r['rating']) ?></span>
-                    <div style="margin:4px 0 0 0;"><?= nl2br(htmlspecialchars($r['comment'])) ?></div>
-                    <div style="font-size:12px;color:#888;"><?= date('d/m/Y H:i', strtotime($r['created_at'])) ?></div>
-                </div>
-            <?php endforeach; else: ?>
-                <div>Chưa có đánh giá nào.</div>
-            <?php endif; ?>
-        </div>
-        <?php if (isset($_SESSION['user'])): ?>
-        <form id="review-form" style="margin-top:18px;">
-            <input type="hidden" name="product_id" value="<?= $id ?>">
-            <label>Đánh giá: </label>
-            <select name="rating" required style="margin:0 8px 0 0;">
-                <option value="">Chọn sao</option>
-                <option value="5">★★★★★ - Tuyệt vời</option>
-                <option value="4">★★★★☆ - Tốt</option>
-                <option value="3">★★★☆☆ - Trung bình</option>
-                <option value="2">★★☆☆☆ - Kém</option>
-                <option value="1">★☆☆☆☆ - Rất tệ</option>
-            </select>
-            <input type="text" name="comment" placeholder="Viết bình luận..." style="width:220px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;" required>
-            <button type="submit" class="btn-buy" style="padding:8px 18px;font-size:15px;">Gửi</button>
-            <span id="review-msg" style="margin-left:10px;color:#388e3c;font-weight:500;"></span>
-        </form>
-        <?php else: ?>
-        <div style="margin-top:12px;color:#888;">Vui lòng <a href="login.php">đăng nhập</a> để đánh giá.</div>
-        <?php endif; ?>
-    </div>
-    <div style="max-width:900px;margin:32px auto 0 auto;">
+       
+    <div style="max-width:1200px;margin:32px auto 0 auto;">
         <h3 style="margin-bottom:16px;">Sản phẩm gợi ý</h3>
-        <div style="display:flex;gap:22px;flex-wrap:wrap;">
+        <div class="suggest-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:22px;">
         <?php
-        $rel = $conn->query("SELECT * FROM products WHERE id != $id ORDER BY RAND() LIMIT 4");
+        $rel = $conn->query("SELECT * FROM products WHERE id != $id ORDER BY id ASC LIMIT 12");
         if ($rel && $rel->num_rows > 0):
             while ($sp = $rel->fetch_assoc()): ?>
-            <div style="width:180px;background:#fff;border-radius:8px;box-shadow:0 2px 8px #eee;padding:12px 10px 18px 10px;text-align:center;">
-                <a href="product_detail.php?id=<?= $sp['id'] ?>" style="text-decoration:none;color:#222;">
-                    <img src="<?= BASE_ASSETS_UPLOADS . $sp['image'] ?>" alt="<?= htmlspecialchars($sp['name']) ?>" style="width:100%;height:120px;object-fit:cover;border-radius:6px;">
+            <div style="background:#fff;border-radius:8px;box-shadow:0 2px 8px #eee;padding:12px 10px 18px 10px;text-align:center;transition:box-shadow .2s;">
+                <a href="product_detail.php?id=<?= $sp['id'] ?>" style="text-decoration:none;color:#222;display:block;">
+                    <img src="<?= BASE_ASSETS_UPLOADS . $sp['image'] ?>" alt="<?= htmlspecialchars($sp['name']) ?>" style="width:100%;height:120px;object-fit:cover;border-radius:6px;transition:transform .2s;">
                     <div style="margin:8px 0 4px 0;font-weight:600;min-height:36px;"> <?= htmlspecialchars($sp['name']) ?> </div>
                     <div style="color:#e53935;font-weight:500;"> <?= number_format($sp['price']) ?>đ </div>
                 </a>
