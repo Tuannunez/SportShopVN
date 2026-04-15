@@ -1,32 +1,152 @@
 <?php
 require_once __DIR__ . '/../../configs/env.php';
 require_once __DIR__ . '/../../configs/helper.php';
-// Nếu chưa đăng nhập, không chuyển hướng mà chỉ ẩn thông tin user
-$isLogin = isset($_SESSION['user']);
+
+// 1. Lấy dữ liệu lọc và sắp xếp
+$keyword = $_GET['keyword'] ?? '';
+$location = $_GET['location'] ?? '';
+$color = $_GET['color'] ?? '';
+$sort = $_GET['sort'] ?? 'newest';
+
+// 2. Câu lệnh SQL lọc động
+$sql = "SELECT * FROM products WHERE 1=1";
+if (!empty($keyword)) $sql .= " AND name LIKE '%".mysqli_real_escape_string($conn, $keyword)."%'";
+if (!empty($location)) $sql .= " AND location = '".mysqli_real_escape_string($conn, $location)."'";
+if (!empty($color)) $sql .= " AND color = '".mysqli_real_escape_string($conn, $color)."'";
+
+// Sắp xếp
+if ($sort == 'sales') $sql .= " ORDER BY view_count DESC";
+elseif ($sort == 'price_asc') $sql .= " ORDER BY price ASC";
+elseif ($sort == 'price_desc') $sql .= " ORDER BY price DESC";
+else $sql .= " ORDER BY id DESC";
+
+$result = $conn->query($sql);
 ?>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/user.css">
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>SportShopVN - Trang chủ</title>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/user.css">
+    <style>
+        body { background: #f5f5f5; margin: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        
+        /* --- HEADER PHONG CÁCH SHOPEE (ĐÃ FIX TO & TRÀN) --- */
+        .user-header { background: linear-gradient(-180deg, #f53d2d, #f63); color: #fff; padding-bottom: 10px; }
+        .top-bar { display: flex; justify-content: flex-end; padding: 5px 40px; font-size: 13px; gap: 15px; }
+        .top-bar a { color: #fff; text-decoration: none; }
+        
+        .main-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 10px 40px; 
+            gap: 40px; /* Khoảng cách giữa logo và search */
+        }
+        
+        .logo { font-size: 30px; font-weight: bold; color: #fff; text-decoration: none; flex-shrink: 0; }
+        
+        /* Ô tìm kiếm tràn màn hình */
+        .search-box { 
+            flex: 1; 
+            display: flex; 
+            background: #fff; 
+            padding: 3px; 
+            border-radius: 2px; 
+            box-shadow: 0 1px 1px rgba(0,0,0,.1);
+            max-width: 900px; /* Độ rộng tối đa để cân đối */
+        }
+        .search-box input { 
+            width: 100%; 
+            border: none; 
+            outline: none; 
+            padding: 10px 15px; 
+            font-size: 15px; 
+        }
+        .search-box button { 
+            background: #fb5533; 
+            border: none; 
+            padding: 0 25px; 
+            color: #fff; 
+            cursor: pointer; 
+            border-radius: 2px;
+            font-size: 18px;
+        }
 
+        /* Giỏ hàng to rõ */
+        .cart { flex-shrink: 0; }
+        .cart a { font-size: 35px; color: #fff; text-decoration: none; position: relative; }
+
+        /* --- BANNER SLIDER --- */
+        .banner-container { max-width: 1200px; margin: 20px auto; border-radius: 4px; overflow: hidden; height: 250px; }
+        .slider-wrapper { display: flex; transition: transform 0.5s ease-in-out; height: 100%; }
+        .slider-wrapper img { width: 100%; flex-shrink: 0; object-fit: cover; }
+
+        /* --- CẤU TRÚC 2 CỘT --- */
+        .main-layout { display: flex; max-width: 1200px; margin: 20px auto; gap: 20px; padding: 0 10px; }
+        
+        /* Sidebar lọc */
+        .sidebar-filter { width: 190px; flex-shrink: 0; }
+        .filter-group { margin-bottom: 25px; }
+        .filter-title { font-weight: bold; font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .filter-item { display: block; margin-bottom: 12px; font-size: 14px; cursor: pointer; color: #333; }
+        .filter-item input { margin-right: 10px; }
+
+        /* Vùng sản phẩm */
+        .product-content { flex: 1; }
+        .sort-bar { 
+            background: rgba(0,0,0,.03); 
+            padding: 13px 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            border-radius: 2px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .sort-btn { background: #fff; border: none; padding: 7px 15px; cursor: pointer; border-radius: 2px; }
+        .sort-btn.active { background: #ee4d2d; color: #fff; }
+
+        /* Danh sách sản phẩm (Card của bạn) */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .product-card { 
+            background: #fff; 
+            border: 1px solid transparent;
+            transition: transform 0.1s, box-shadow 0.1s;
+            padding-bottom: 15px;
+            text-align: center;
+        }
+        .product-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 1px 20px rgba(0,0,0,.05);
+            border-color: #ee4d2d;
+        }
+        .product-img { width: 100%; height: 190px; padding: 10px; box-sizing: border-box; }
+        .product-img img { width: 100%; height: 100%; object-fit: contain; }
+        .p-name { font-size: 13px; color: #333; margin: 10px; height: 32px; overflow: hidden; }
+        .p-price { color: #ee4d2d; font-size: 16px; font-weight: 500; margin-bottom: 15px; }
+        .btn-detail { display: block; color: #1e90ff; text-decoration: none; font-size: 12px; margin-bottom: 8px; }
+        .btn-buy { background: #ee4d2d; color: #fff; border: none; padding: 8px 15px; border-radius: 2px; cursor: pointer; width: 80%; }
+    </style>
+</head>
+<body>
 
 <header class="user-header">
-    
-    <!-- dòng trên -->
-  <div class="top-bar">
-    <?php if (isset($_SESSION['user'])): ?>
-        Xin chào, <b><?= htmlspecialchars($_SESSION['user']['name']) ?></b>
-        <a class="logout" href="logout.php" onclick="return confirm('Bạn có chắc chắn muốn đăng xuất không?')">Đăng xuất</a>
-    <?php else: ?>
-        <a class="login-btn" href="login.php">Đăng nhập</a>
-        <a class="register-btn" href="register.php">Đăng ký</a>
-    <?php endif; ?>
-</div>
-
-    <!-- dòng dưới -->
+    <div class="top-bar">
+        <?php if(isset($_SESSION['user'])): ?>
+            <span>Chào, <?= $_SESSION['user']['name'] ?></span>
+            <a href="logout.php">Đăng xuất</a>
+        <?php else: ?>
+            <a href="login.php">Đăng nhập</a>
+            <a href="register.php">Đăng ký</a>
+        <?php endif; ?>
+    </div>
     <div class="main-header">
-        <div class="logo">SportShopVN</div>
-
+        <a href="index.php" class="logo">SportShopVN</a>
+        
         <form class="search-box" action="index.php" method="GET">
-            <input type="text" name="keyword" placeholder="Tìm sản phẩm...">
+            <input type="text" name="keyword" value="<?= htmlspecialchars($keyword) ?>" placeholder="SportShopVN bao ship 0Đ - Mua ngay!">
             <button type="submit">🔍</button>
         </form>
 
@@ -34,347 +154,78 @@ $isLogin = isset($_SESSION['user']);
             <a href="cart.php">🛒</a>
         </div>
     </div>
-
 </header>
 
-
-<div class="banner-slider" style="max-width:1200px;height:220px;margin:30px auto 0 auto;position:relative;overflow:hidden;border-radius:14px;box-shadow:0 4px 24px 0 rgba(0,0,0,0.09);">
-    <div class="slider-wrapper" id="slider-wrapper" style="display:flex;transition:transform 0.7s cubic-bezier(.4,0,.2,1);width:400%;height:100%;">
-        <img src="<?= BASE_URL ?>/assets/images/banner1.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 1">
-        <img src="<?= BASE_URL ?>/assets/images/banner3.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 3">
-        <img src="<?= BASE_URL ?>/assets/images/banner5.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 5">
-        <img src="<?= BASE_URL ?>/assets/images/banner4.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 4">
-    </div>
-    <button id="prev-banner" style="position:absolute;top:50%;left:18px;transform:translateY(-50%);background:rgba(0,0,0,0.3);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:2;">&#10094;</button>
-    <button id="next-banner" style="position:absolute;top:50%;right:18px;transform:translateY(-50%);background:rgba(0,0,0,0.3);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:2;">&#10095;</button>
-    <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:2;">
-        <span class="dot" style="width:12px;height:12px;border-radius:50%;background:#fff;opacity:0.7;display:inline-block;cursor:pointer;" data-index="0"></span>
-        <span class="dot" style="width:12px;height:12px;border-radius:50%;background:#fff;opacity:0.7;display:inline-block;cursor:pointer;" data-index="1"></span>
-        <span class="dot" style="width:12px;height:12px;border-radius:50%;background:#fff;opacity:0.7;display:inline-block;cursor:pointer;" data-index="2"></span>
-        <span class="dot" style="width:12px;height:12px;border-radius:50%;background:#fff;opacity:0.7;display:inline-block;cursor:pointer;" data-index="3"></span>
+<div class="banner-container">
+    <div class="slider-wrapper" id="mainSlider">
+        <img src="<?= BASE_URL ?>/assets/images/banner1.jpg" alt="Banner 1">
+        <img src="<?= BASE_URL ?>/assets/images/banner2.jpg" alt="Banner 2">
+        <img src="<?= BASE_URL ?>/assets/images/banner3.jpg" alt="Banner 3">
     </div>
 </div>
+
+<div class="main-layout">
+    <aside class="sidebar-filter">
+        <div class="filter-title">📑 BỘ LỌC TÌM KIẾM</div>
+        <form id="filterForm" method="GET" action="index.php">
+            <div class="filter-group">
+                <p style="font-weight: 500;">Nơi Bán</p>
+                <?php $locs = ['Hà Nội', 'Đà Nẵng', 'Phú Thọ', 'TP.HCM']; foreach($locs as $l): ?>
+                    <label class="filter-item">
+                        <input type="radio" name="location" value="<?= $l ?>" <?= $location==$l?'checked':'' ?> onchange="this.form.submit()"> <?= $l ?>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="filter-group">
+                <p style="font-weight: 500;">Màu sắc</p>
+                <label class="filter-item"><input type="radio" name="color" value="Trắng" onchange="this.form.submit()"> Trắng</label>
+                <label class="filter-item"><input type="radio" name="color" value="Xanh" onchange="this.form.submit()"> Xanh</label>
+            </div>
+            
+            <a href="index.php" style="color: #ee4d2d; text-decoration: none; font-size: 13px;">Xóa tất cả</a>
+        </form>
+    </aside>
+
+    <main class="product-content">
+        <div class="sort-bar">
+            <span>Sắp xếp theo</span>
+            <button class="sort-btn <?= $sort=='newest'?'active':'' ?>" onclick="location.href='index.php?sort=newest'">Mới nhất</button>
+            <button class="sort-btn <?= $sort=='sales'?'active':'' ?>" onclick="location.href='index.php?sort=sales'">Bán chạy</button>
+            <select style="padding: 7px; border: 1px solid #ddd;" onchange="location.href='index.php?sort=' + this.value">
+                <option value="">Giá</option>
+                <option value="price_asc" <?= $sort=='price_asc'?'selected':'' ?>>Giá: Thấp đến Cao</option>
+                <option value="price_desc" <?= $sort=='price_desc'?'selected':'' ?>>Giá: Cao đến Thấp</option>
+            </select>
+        </div>
+
+        <div class="product-grid">
+            <?php if($result->num_rows > 0): while($row = $result->fetch_assoc()): ?>
+                <div class="product-card">
+                    <div class="product-img">
+                        <img src="<?= BASE_ASSETS_UPLOADS . $row['image'] ?>" alt="">
+                    </div>
+                    <div class="p-name"><?= htmlspecialchars($row['name']) ?></div>
+                    <div class="p-price"><?= number_format($row['price']) ?>đ</div>
+                    <a href="product_detail.php?id=<?= $row['id'] ?>" class="btn-detail">Xem chi tiết</a>
+                    <button class="btn-buy">Mua ngay</button>
+                </div>
+            <?php endwhile; else: ?>
+                <p>Không tìm thấy sản phẩm nào.</p>
+            <?php endif; ?>
+        </div>
+    </main>
+</div>
+
 <script>
-const slider = document.getElementById('slider-wrapper');
-const dots = document.querySelectorAll('.dot');
-let current = 0;
-let total = 4;
-let autoSlide;
-function showSlide(idx) {
-    current = (idx + total) % total;
-    slider.style.transform = `translateX(-${current * 100}%)`;
-    dots.forEach((d,i)=>d.style.opacity = i===current ? '1' : '0.7');
-}
-function nextSlide() { showSlide(current+1); }
-function prevSlide() { showSlide(current-1); }
-document.getElementById('next-banner').onclick = nextSlide;
-document.getElementById('prev-banner').onclick = prevSlide;
-dots.forEach((d,i)=>d.onclick=()=>showSlide(i));
-function startAuto() { autoSlide = setInterval(nextSlide, 3500); }
-function stopAuto() { clearInterval(autoSlide); }
-slider.parentElement.addEventListener('mouseenter', stopAuto);
-slider.parentElement.addEventListener('mouseleave', startAuto);
-showSlide(0); startAuto();
+    // Script chạy slider tự động
+    const wrapper = document.getElementById('mainSlider');
+    let index = 0;
+    setInterval(() => {
+        index = (index + 1) % 3; // 3 là số ảnh banner
+        wrapper.style.transform = `translateX(-${index * 100}%)`;
+    }, 4000);
 </script>
 
-<main class="product-main">
-    <h2 class="section-title">Sản phẩm mới</h2>
-    <div class="product-grid">
-        <?php
-        // Lấy danh sách sản phẩm từ database
-        $sql = "SELECT * FROM products ORDER BY id DESC LIMIT 20";
-        $result = $conn->query($sql);
-        if ($result && $result->num_rows > 0):
-            while ($row = $result->fetch_assoc()):
-        ?>
-        <div class="product-card">
-            <div class="product-img">
-                <img src="<?= !empty($row['image']) ? BASE_ASSETS_UPLOADS . $row['image'] : 'https://via.placeholder.com/220x220?text=No+Image' ?>" alt="<?= htmlspecialchars($row['name']) ?>">
-            </div>
-            <div class="product-info">
-                <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
-                <div class="product-price">Giá: <?= number_format($row['price']) ?>đ</div>
-                <a href="product_detail.php?id=<?= $row['id'] ?>" class="detail-btn">Xem chi tiết</a>
-                <button class="buy-btn">Mua ngay</button>
-            <style>
-            .detail-btn {
-                display: inline-block;
-                background: #fff;
-                color: #1976d2;
-                border: 1.5px solid #1976d2;
-                border-radius: 6px;
-                padding: 7px 18px;
-                font-size: 15px;
-                font-weight: 500;
-                margin-right: 8px;
-                margin-bottom: 6px;
-                text-decoration: none;
-                transition: background 0.2s, color 0.2s;
-            }
-            .detail-btn:hover {
-                background: #1976d2;
-                color: #fff;
-            }
-            </style>
-            </div>
-        </div>
-        <?php endwhile; else: ?>
-            <div>Chưa có sản phẩm nào.</div>
-        <?php endif; ?>
-    </div>
-</main>
-<style>
-    
-body {
-    background: #f4f6f9;
-    margin: 0;
-    font-family: Arial, sans-serif;
-}
-/* HEADER */
-.user-header {
-    background: #222;
-    color: #fff;
-}
-
-/* dòng trên */
-.top-bar {
-    text-align: right;
-    padding: 8px 40px;
-    font-size: 14px;
-}
-
-/* dòng dưới */
-.main-header {
-    display: flex;
-    align-items: center;
-    padding: 12px 40px;
-    gap: 20px;
-}
-
-/* logo */
-.logo {
-    font-size: 24px;
-    font-weight: bold;
-    min-width: 180px;
-}
-
-/* search */
-.search-box {
-    flex: 1;
-    display: flex;
-}
-
-.search-box input {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    outline: none;
-    border-radius: 4px 0 0 4px;
-}
-
-.search-box button {
-    background: #ff7337;
-    border: none;
-    padding: 10px 16px;
-    color: #fff;
-    cursor: pointer;
-    border-radius: 0 4px 4px 0;
-}
-
-/* cart */
-.cart {
-    min-width: 60px;
-    text-align: right;
-}
-
-.cart a {
-    font-size: 24px;
-    color: #fff;
-    text-decoration: none;
-}
-.logo {
-    font-size: 2rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-.user-header nav {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-}
-.welcome {
-    font-size: 1rem;
-    margin-right: 10px;
-}
-.logout {
-    color: #fff;
-    background: #e74c3c;
-    padding: 7px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background 0.2s;
-}
-.logout:hover {
-    background: #c0392b;
-}
-.login-btn, .register-btn {
-    color: #fff;
-    background: #1e90ff;
-    padding: 7px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 500;
-    margin-left: 8px;
-    transition: background 0.2s;
-}
-.register-btn {
-    background: #38b6ff;
-}
-.login-btn:hover {
-    background: #0a58ca;
-}
-.register-btn:hover {
-    background: #0074d9;
-}
-.product-main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px 40px 24px;
-}
-.section-title {
-    text-align: left;
-    font-size: 1.7rem;
-    font-weight: 700;
-    margin-bottom: 28px;
-    color: #222;
-    letter-spacing: 1px;
-}
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 32px 24px;
-}
-.product-card {
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: box-shadow 0.2s, transform 0.2s;
-    padding-bottom: 18px;
-}
-.product-card:hover {
-    box-shadow: 0 6px 24px rgba(30,144,255,0.13);
-    transform: translateY(-4px) scale(1.03);
-}
-.product-img {
-    width: 100%;
-    height: 220px;
-    background: #f8fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid #f0f0f0;
-}
-.product-img img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-.product-info {
-    padding: 18px 10px 0 10px;
-    width: 100%;
-    text-align: center;
-}
-.product-name {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #222;
-}
-.product-price {
-    color: #1e90ff;
-    font-size: 1rem;
-    margin-bottom: 12px;
-    font-weight: 500;
-}
-.buy-btn {
-    background: linear-gradient(90deg, #1e90ff 60%, #38b6ff 100%);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 0;
-    width: 100%;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.buy-btn:hover {
-    background: linear-gradient(90deg, #38b6ff 60%, #1e90ff 100%);
-}
-@media (max-width: 700px) {
-    .container-header, .product-main {
-        padding: 10px;
-    }
-    .section-title {
-        font-size: 1.2rem;
-    }
-    .product-img {
-        height: 140px;
-    }
-}
-/* BANNER TRANG CHỦ */
-.banner-user {
-    width: 100%;
-    min-height: 260px;
-    background: linear-gradient(90deg, #1e90ff 60%, #38b6ff 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 36px;
-    box-shadow: 0 4px 24px rgba(30,144,255,0.07);
-    position: relative;
-    overflow: hidden;
-}
-.banner-content {
-    color: #fff;
-    text-align: center;
-    z-index: 2;
-    padding: 36px 16px;
-}
-.banner-content h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 12px;
-    letter-spacing: 1px;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.banner-content p {
-    font-size: 1.2rem;
-    margin-bottom: 22px;
-    font-weight: 400;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.07);
-}
-.banner-btn {
-    background: #fff;
-    color: #1e90ff;
-    padding: 12px 32px;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: 0 2px 8px rgba(30,144,255,0.09);
-    transition: background 0.2s, color 0.2s;
-    border: none;
-    outline: none;
-    display: inline-block;
-}
-.banner-btn:hover {
-    background: #1e90ff;
-    color: #fff;
-}
-</style>
+</body>
+</html>
