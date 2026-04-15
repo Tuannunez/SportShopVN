@@ -95,7 +95,7 @@ showSlide(0); startAuto();
                 <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
                 <div class="product-price">Giá: <?= number_format($row['price']) ?>đ</div>
                 <a href="product_detail.php?id=<?= $row['id'] ?>" class="detail-btn">Xem chi tiết</a>
-            <a href="product_detail.php?id=<?= $row['id'] ?>" class="buy-btn">Mua ngay</a>
+            <button class="buy-btn" onclick="addToCart(<?= $row['id'] ?>, '<?= addslashes(htmlspecialchars($row['name'])) ?>', <?= $row['price'] ?>); return false;">Mua ngay</button>
             <style>
             .detail-btn {
                 display: inline-block;
@@ -381,7 +381,7 @@ body {
 
 <script>
 function addToCart(id, name, price) {
-    fetch('/SportShopVN/views/users/addtocart.php', {
+    fetch('addtocart.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -390,8 +390,15 @@ function addToCart(id, name, price) {
     })
     .then(res => res.json())
     .then(data => {
-        alert('🛒 Đã thêm vào giỏ hàng!');
+        if (data.status === 'success') {
+            alert('🛒 Đã thêm vào giỏ hàng!');
+        } else {
+            alert('Lỗi khi thêm vào giỏ hàng!');
+        }
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+        console.log('Lỗi:', err);
+        alert('Lỗi khi thêm vào giỏ hàng!');
+    });
 }
 </script>

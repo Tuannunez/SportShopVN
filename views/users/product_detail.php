@@ -194,28 +194,32 @@ if ($rv && $rv->num_rows > 0) {
 document.getElementById('add-to-cart-form').onsubmit = function(e) {
     e.preventDefault();
 
-    var quantity = document.getElementById('quantity').value;
-    var msg = document.getElementById('cart-message'); // ✅ sửa đúng id
-
+    var msg = document.getElementById('cart-message');
     msg.textContent = '';
 
-    fetch('<?= BASE_URL ?>/controllers/cart.php', {
+    fetch('addtocart.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'product_id=<?= $id ?>&quantity=' + encodeURIComponent(quantity)
+        body: 'id=<?= $id ?>&name=<?= urlencode($product['name']) ?>&price=<?= $product['price'] ?>'
     })
     .then(res => res.json())
     .then(data => {
-        msg.textContent = data.message || '🛒 Đã thêm vào giỏ hàng!';
-        msg.style.color = data.success ? '#388e3c' : '#e53935';
+        if (data.status === 'success') {
+            msg.textContent = '🛒 Đã thêm vào giỏ hàng!';
+            msg.style.color = '#388e3c';
+        } else {
+            msg.textContent = '❌ Có lỗi xảy ra!';
+            msg.style.color = '#e53935';
+        }
     })
-    .catch(() => {
+    .catch(err => {
+        console.log('Lỗi:', err);
         msg.textContent = '❌ Có lỗi xảy ra!';
         msg.style.color = 'red';
     });
 };
 
-// ===== NÚT MUA NGAY (CHO NÓ HOẠT ĐỘNG LUÔN) =====
+// ===== NÚT MUA NGAY =====
 document.getElementById('buy-now').onclick = function() {
     window.location.href = 'cart.php';
 };
