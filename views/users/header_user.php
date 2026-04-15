@@ -17,7 +17,9 @@
             <button type="submit">🔍</button>
         </form>
         <div class="cart" style="display:flex;align-items:center;gap:12px;">
-            <a href="cart.php" title="Giỏ hàng">🛒</a>
+            <a href="cart.php" title="Giỏ hàng" style="position:relative;">
+                🛒<span id="cart-count-badge" style="position:absolute;top:-8px;right:-10px;background:#e53935;color:#fff;font-size:13px;font-weight:700;padding:2px 7px;border-radius:50%;min-width:22px;text-align:center;"></span>
+            </a>
             <a href="order_history.php" class="btn btn-outline-primary" style="padding:6px 16px;font-size:15px;border-radius:6px;font-weight:500;">Đơn hàng</a>
         </div>
     </div>

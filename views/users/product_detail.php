@@ -53,6 +53,8 @@ if ($rv && $rv->num_rows > 0) {
         <div class="cart">
             <a href="cart.php">🛒</a>
                 <a href="order_history.php" class="btn btn-outline-primary" style="padding:6px 16px;font-size:15px;border-radius:6px;font-weight:500;">Đơn hàng</a>
+
+
         </div>
     </div>
 
@@ -61,9 +63,9 @@ if ($rv && $rv->num_rows > 0) {
     <div class="banner-slider" style="max-width:1200px;height:220px;margin:30px auto 0 auto;position:relative;overflow:hidden;border-radius:14px;box-shadow:0 4px 24px 0 rgba(0,0,0,0.09);">
         <div class="slider-wrapper" id="slider-wrapper" style="display:flex;transition:transform 0.7s cubic-bezier(.4,0,.2,1);width:400%;height:100%;">
             <img src="<?= BASE_URL ?>/assets/images/banner1.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 1">
-            <img src="<?= BASE_URL ?>/assets/images/banner2.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 2">
             <img src="<?= BASE_URL ?>/assets/images/banner3.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 3">
             <img src="<?= BASE_URL ?>/assets/images/banner4.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 4">
+            <img src="<?= BASE_URL ?>/assets/images/banner5.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 5">
         </div>
         <button id="prev-banner" style="position:absolute;top:50%;left:18px;transform:translateY(-50%);background:rgba(0,0,0,0.3);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:2;">&#10094;</button>
         <button id="next-banner" style="position:absolute;top:50%;right:18px;transform:translateY(-50%);background:rgba(0,0,0,0.3);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:2;">&#10095;</button>
@@ -116,129 +118,188 @@ if ($rv && $rv->num_rows > 0) {
                 <h2><?= htmlspecialchars($product['name']) ?></h2>
                 <div class="product-detail-price">Giá: <?= number_format($product['price']) ?>đ</div>
                 <form class="product-detail-btns" id="add-to-cart-form">
+                    <div id="cart-toast" style="display:none;position:fixed;top:30px;right:30px;z-index:9999;background:#1976d2;color:#fff;padding:16px 32px;border-radius:8px;box-shadow:0 2px 12px rgba(30,144,255,0.13);font-size:1.1rem;font-weight:600;transition:all .3s;">Đã thêm vào giỏ hàng!</div>
                     <label for="quantity" class="product-detail-label">Số lượng:</label>
                     <input type="number" id="quantity" name="quantity" value="1" min="1" style="width:70px;padding:8px 10px;border-radius:6px;border:1px solid #ccc;font-size:16px;">
                     <button type="submit" class="btn-add-cart">Thêm vào giỏ</button>
                     <button type="button" class="btn-buy" id="buy-now">Mua ngay</button>
                     <a href="index.php" class="btn-back">Quay lại</a>
                 </form>
+
                 <script>
+                // ===== THÊM VÀO GIỎ HÀNG (CHUẨN) + TOAST + ĐẾM SỐ LƯỢNG =====
+                function showCartToast(msg, success = true) {
+                    var toast = document.getElementById('cart-toast');
+                    toast.textContent = msg;
+                    toast.style.background = success ? '#1976d2' : '#e53935';
+                    toast.style.display = 'block';
+                    setTimeout(() => { toast.style.display = 'none'; }, 1800);
+                }
+                function updateCartCount() {
+                    fetch('getcartcount.php')
+                        .then(res => res.json())
+                        .then(data => {
+                            var badge = document.getElementById('cart-count-badge');
+                            if (badge) badge.textContent = data.count > 0 ? data.count : '';
+                        });
+                }
+                document.getElementById('add-to-cart-form').onsubmit = function(e) {
+                    e.preventDefault();
+                    var quantity = document.getElementById('quantity').value;
+                    fetch('<?= BASE_URL ?>/controllers/cart.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'product_id=<?= $id ?>&quantity=' + encodeURIComponent(quantity)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        showCartToast(data.message || '🛒 Đã thêm vào giỏ hàng!', data.success);
+                        updateCartCount();
+                    })
+                    .catch(() => {
+                        showCartToast('❌ Có lỗi xảy ra!', false);
+                    });
+                };
+                // ===== NÚT MUA NGAY (CHUẨN) =====
                 document.getElementById('buy-now').onclick = function() {
                     var quantity = document.getElementById('quantity').value;
                     window.location.href = 'checkout.php?id=<?= $product['id'] ?>&quantity=' + quantity;
                 };
+                // Cập nhật số lượng giỏ hàng khi vào trang
+                document.addEventListener('DOMContentLoaded', updateCartCount);
+                    <!-- ...existing code... -->
+                // ===== GỬI ĐÁNH GIÁ =====
+                var reviewForm = document.getElementById('review-form');
+                if (reviewForm) {
+                    reviewForm.onsubmit = function(e) {
+                        e.preventDefault();
+                        var formData = new FormData(reviewForm);
+                        var msg = document.getElementById('review-msg');
+                        msg.textContent = '';
+                        fetch('<?= BASE_URL ?>/controllers/review.php', {
+                            method: 'POST',
+                            body: new URLSearchParams([...formData])
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            msg.textContent = data.message;
+                            msg.style.color = data.success ? '#388e3c' : '#e53935';
+                            if (data.success) setTimeout(() => location.reload(), 800);
+                        });
+                    }
+                }
                 </script>
-
-                <!-- Đánh giá và bình luận -->
-                <div id="review-box" style="margin-top:18px;">
+            <!-- Đánh giá & bình luận -->
+            <div style="max-width:700px;margin:40px 0 0 0;background:#fff;border-radius:10px;box-shadow:0 2px 12px #e3eafc;padding:32px 28px 24px 28px;">
+                <h3 style="margin-bottom:18px;color:#1976d2;font-size:1.3rem;">Đánh giá & bình luận</h3>
+                <div id="review-list">
                     <?php if ($reviews): foreach ($reviews as $r): ?>
-                        <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eee;">
-                            <b><?= htmlspecialchars($r['user_name']) ?></b> - <span style="color:#fbc02d;"><?= str_repeat('★', (int)$r['rating']) . str_repeat('☆', 5-(int)$r['rating']) ?></span>
-                            <div style="margin:4px 0 0 0;"><?= nl2br(htmlspecialchars($r['comment'])) ?></div>
-                            <div style="font-size:12px;color:#888;"><?= date('d/m/Y H:i', strtotime($r['created_at'])) ?></div>
+                        <div style="margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #eee;">
+                            <b><?= htmlspecialchars($r['user_name']) ?></b> - <span style="color:#fbc02d;"> <?= str_repeat('★', (int)$r['rating']) . str_repeat('☆', 5-(int)$r['rating']) ?> </span>
+                            <div style="margin:4px 0 0 0;"> <?= nl2br(htmlspecialchars($r['comment'])) ?> </div>
+                            <div style="font-size:12px;color:#888;"> <?= date('d/m/Y H:i', strtotime($r['created_at'])) ?> </div>
                         </div>
                     <?php endforeach; else: ?>
                         <div>Chưa có đánh giá nào.</div>
                     <?php endif; ?>
-
-                    <?php if (isset($_SESSION['user'])): ?>
-                    <form id="review-form" style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <input type="hidden" name="product_id" value="<?= $id ?>">
-                        <label>Đánh giá: </label>
-                        <select name="rating" required style="margin:0 8px 0 0;">
-                            <option value="">Chọn sao</option>
-                            <option value="5">★★★★★ - Tuyệt vời</option>
-                            <option value="4">★★★★☆ - Tốt</option>
-                            <option value="3">★★★☆☆ - Trung bình</option>
-                            <option value="2">★★☆☆☆ - Kém</option>
-                            <option value="1">★☆☆☆☆ - Rất tệ</option>
-                        </select>
-                        <input type="text" name="comment" placeholder="Viết bình luận..." style="width:220px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;" required>
-                        <button type="submit" class="btn-buy" style="padding:8px 18px;font-size:15px;">Gửi</button>
-                        <span id="review-msg" style="margin-left:10px;color:#388e3c;font-weight:500;"></span>
-                    </form>
-                    <?php else: ?>
-                    <div style="margin-top:12px;color:#888;">Vui lòng <a href="login.php">đăng nhập</a> để đánh giá.</div>
-                    <?php endif; ?>
                 </div>
-                <div id="cart-message" style="margin-top:10px;color:green;font-weight:500;"></div>
+                <?php if (isset($_SESSION['user'])): ?>
+                <form id="review-form" style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <input type="hidden" name="product_id" value="<?= $id ?>">
+                    <label>Đánh giá: </label>
+                    <select name="rating" required style="margin:0 8px 0 0;">
+                        <option value="">Chọn sao</option>
+                        <option value="5">★★★★★ - Tuyệt vời</option>
+                        <option value="4">★★★★☆ - Tốt</option>
+                        <option value="3">★★★☆☆ - Trung bình</option>
+                        <option value="2">★★☆☆☆ - Kém</option>
+                        <option value="1">★☆☆☆☆ - Rất tệ</option>
+                    </select>
+                    <input type="text" name="comment" placeholder="Viết bình luận..." style="width:220px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;" required>
+                    <button type="submit" class="btn-buy" style="padding:8px 18px;font-size:15px;">Gửi</button>
+                    <span id="review-msg" style="margin-left:10px;color:#388e3c;font-weight:500;"></span>
+                </form>
+                <?php else: ?>
+                <div style="margin-top:12px;color:#888;">Vui lòng <a href="login.php">đăng nhập</a> để đánh giá.</div>
+                <?php endif; ?>
+            </div>
             </div>
         </div>
+
+        <!-- Sản phẩm khác -->
+        <div style="max-width:1200px;margin:48px auto 0 auto;">
+            <h3 style="margin-bottom:18px;color:#1976d2;font-size:1.3rem;">Sản phẩm khác</h3>
+            <div class="product-grid">
+            <?php
+            $rel = $conn->query("SELECT * FROM products WHERE id != $id ORDER BY RAND() LIMIT 4");
+            if ($rel && $rel->num_rows > 0):
+                while ($sp = $rel->fetch_assoc()): ?>
+                <div class="product-card">
+                    <a href="product_detail.php?id=<?= $sp['id'] ?>" style="text-decoration:none;color:#222;display:block;">
+                        <div class="product-img"><img src="<?= BASE_ASSETS_UPLOADS . $sp['image'] ?>" alt="<?= htmlspecialchars($sp['name']) ?>" style="width:100%;height:180px;object-fit:cover;border-radius:8px;"></div>
+                        <div class="product-info">
+                            <div class="product-name"> <?= htmlspecialchars($sp['name']) ?> </div>
+                            <div class="product-price"> <?= number_format($sp['price']) ?>đ </div>
+                        </div>
+                    </a>
+                </div>
+            <?php endwhile; endif; ?>
+            </div>
+        </div>
+
         <style>
-        .product-detail-mainbox { max-width: 1200px; margin: 36px auto 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px 0 rgba(0,0,0,0.07); display: flex; gap: 38px; padding: 38px 38px 38px 38px; align-items: flex-start; }
-        .product-detail-img { flex: 0 0 420px; display: flex; align-items: flex-start; justify-content: center; }
-        .product-detail-img img { width: 400px; height: 400px; object-fit: cover; border-radius: 10px; box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08); border: 1px solid #eee; background: #fafafa; }
-        .product-detail-info { flex: 1; text-align: left; }
-        .product-detail-info h2 { margin-top: 0; color: #1976d2; font-size: 2rem; font-weight: 700; }
-        .product-detail-price { font-size: 2rem; color: #e53935; font-weight: bold; margin: 18px 0 22px 0; }
-        .product-detail-btns { margin-top: 28px; display: flex; align-items: center; gap: 16px; }
-        .btn-buy { background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 14px 38px; font-size: 18px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .btn-buy:hover { background: #125ea7; }
-        .btn-add-cart { background: #fff; color: #1976d2; border: 2px solid #1976d2; border-radius: 6px; padding: 13px 28px; font-size: 17px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .btn-add-cart:hover { background: #1976d2; color: #fff; }
-        .btn-back { background: #90a4ae; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 15px; margin-left: 12px; text-decoration: none; }
-        .btn-back:hover { background: #78909c; }
-        .product-detail-label { font-weight: 500; color: #444; margin-right: 10px; }
-        .product-detail-select { padding: 8px 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
-        </style>
-       
-    <div style="max-width:1200px;margin:32px auto 0 auto;">
-        <h3 style="margin-bottom:16px;">Sản phẩm gợi ý</h3>
-        <div class="suggest-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:22px;">
-        <?php
-        $rel = $conn->query("SELECT * FROM products WHERE id != $id ORDER BY id ASC LIMIT 12");
-        if ($rel && $rel->num_rows > 0):
-            while ($sp = $rel->fetch_assoc()): ?>
-            <div style="background:#fff;border-radius:8px;box-shadow:0 2px 8px #eee;padding:12px 10px 18px 10px;text-align:center;transition:box-shadow .2s;">
-                <a href="product_detail.php?id=<?= $sp['id'] ?>" style="text-decoration:none;color:#222;display:block;">
-                    <img src="<?= BASE_ASSETS_UPLOADS . $sp['image'] ?>" alt="<?= htmlspecialchars($sp['name']) ?>" style="width:100%;height:120px;object-fit:cover;border-radius:6px;transition:transform .2s;">
-                    <div style="margin:8px 0 4px 0;font-weight:600;min-height:36px;"> <?= htmlspecialchars($sp['name']) ?> </div>
-                    <div style="color:#e53935;font-weight:500;"> <?= number_format($sp['price']) ?>đ </div>
-                </a>
-            </div>
-        <?php endwhile; endif; ?>
-        </div>
-    </div>
-    <script>
-    // Thêm vào giỏ hàng
-    document.getElementById('add-to-cart-form').onsubmit = function(e) {
-        e.preventDefault();
-        var quantity = document.getElementById('quantity').value;
-        var msg = document.getElementById('cart-msg');
-        msg.textContent = '';
-        fetch('<?= BASE_URL ?>/controllers/cart.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'product_id=<?= $id ?>&quantity=' + encodeURIComponent(quantity)
-        })
-        .then(res => res.json())
-        .then(data => {
-            msg.textContent = data.message;
-            msg.style.color = data.success ? '#388e3c' : '#e53935';
-        });
-    };
-    // Gửi đánh giá
-    var reviewForm = document.getElementById('review-form');
-    if (reviewForm) {
-        reviewForm.onsubmit = function(e) {
-            e.preventDefault();
-            var formData = new FormData(reviewForm);
-            var msg = document.getElementById('review-msg');
-            msg.textContent = '';
-            fetch('<?= BASE_URL ?>/controllers/review.php', {
-                method: 'POST',
-                body: new URLSearchParams([...formData])
-            })
-            .then(res => res.json())
-            .then(data => {
-                msg.textContent = data.message;
-                msg.style.color = data.success ? '#388e3c' : '#e53935';
-                if (data.success) setTimeout(() => location.reload(), 800);
-            });
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 32px 24px;
         }
-    }
-    </script>
-</body>
+        .product-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: box-shadow 0.2s, transform 0.2s;
+            padding-bottom: 18px;
+        }
+        .product-card:hover {
+            box-shadow: 0 6px 24px rgba(30,144,255,0.13);
+            transform: translateY(-4px) scale(1.03);
+        }
+        .product-img {
+            width: 100%;
+            height: 180px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .product-img img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .product-info {
+            padding: 18px 10px 0 10px;
+            width: 100%;
+            text-align: center;
+        }
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #222;
+        }
+        .product-price {
+            color: #1e90ff;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        </style>
    <style>
         .product-detail-mainbox { max-width: 1200px; margin: 36px auto 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px 0 rgba(0,0,0,0.07); display: flex; gap: 38px; padding: 38px 38px 38px 38px; align-items: flex-start; }
         .product-detail-img { flex: 0 0 420px; display: flex; align-items: flex-start; justify-content: center; }
