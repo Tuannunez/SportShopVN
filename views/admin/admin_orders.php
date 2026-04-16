@@ -75,7 +75,7 @@ $result = $conn->query($sql);
                     <td><?= isset($order['created_at']) ? date('d/m/Y H:i', strtotime($order['created_at'])) : '' ?></td>
                     <td>
                         <?php if ($st === 'CHỜ DUYỆT'): ?>
-                            <button class="btn btn-sm btn-primary" onclick="updateStatus(<?= $order['id'] ?>, 'processing', this)">Duyệt đơn</button>
+                            <button class="btn btn-sm btn-primary" onclick="updateStatus(<?= $order['id'] ?>, 'approve', this)">Duyệt đơn</button>
                         <?php elseif ($st === 'ĐANG XỬ LÍ'): ?>
                             <button class="btn btn-sm btn-info" onclick="updateStatus(<?= $order['id'] ?>, 'approve', this)">Chuyển Đang giao</button>
                         <?php elseif ($st === 'ĐANG GIAO'): ?>

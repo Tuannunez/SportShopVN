@@ -42,7 +42,10 @@ $details = $conn->query("SELECT od.*, p.name, p.image FROM order_details od JOIN
             </tr>
         </thead>
         <tbody>
-        <?php if ($details && $details->num_rows > 0): while ($d = $details->fetch_assoc()): ?>
+        <?php if ($details && $details->num_rows > 0):
+            // Reset lại con trỏ để duyệt 2 lần
+            $details->data_seek(0);
+            while ($d = $details->fetch_assoc()): ?>
             <tr>
                 <td style="text-align:center;padding:8px 6px;"><img src="<?= BASE_ASSETS_UPLOADS . $d['image'] ?>" alt="<?= htmlspecialchars($d['name']) ?>" style="width:60px;height:60px;object-fit:cover;border-radius:7px;"></td>
                 <td style="padding:8px 6px;"> <?= htmlspecialchars($d['name']) ?> </td>
@@ -50,6 +53,28 @@ $details = $conn->query("SELECT od.*, p.name, p.image FROM order_details od JOIN
                 <td style="text-align:right;"> <?= number_format($d['price']) ?>đ </td>
                 <td style="text-align:right;"> <?= number_format($d['price'] * $d['quantity']) ?>đ </td>
             </tr>
+            <?php if (strtoupper($order['status']) === 'ĐÃ GIAO' && isset($_SESSION['user'])): ?>
+            <tr>
+                <td colspan="5" style="background:#f8f9fa;padding:18px 18px 10px 18px;">
+                    <b>Bình luận & đánh giá sản phẩm:</b>
+                    <form method="post" action="product_review_submit.php" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                        <input type="hidden" name="product_id" value="<?= $d['product_id'] ?>">
+                        <input type="hidden" name="order_id" value="<?= $order_id ?>">
+                        <input type="hidden" name="user_id" value="<?= $_SESSION['user']['id'] ?>">
+                        <select name="rating" required style="padding:4px 8px;border-radius:5px;border:1px solid #ccc;">
+                            <option value="">Chọn sao</option>
+                            <option value="5">5 ★</option>
+                            <option value="4">4 ★</option>
+                            <option value="3">3 ★</option>
+                            <option value="2">2 ★</option>
+                            <option value="1">1 ★</option>
+                        </select>
+                        <input type="text" name="comment" placeholder="Viết bình luận..." style="flex:1;min-width:180px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;" required>
+                        <button type="submit" class="btn btn-success btn-sm">Gửi đánh giá</button>
+                    </form>
+                </td>
+            </tr>
+            <?php endif; ?>
         <?php endwhile; else: ?>
             <tr><td colspan="5" style="text-align:center;">Không có sản phẩm nào trong đơn hàng này.</td></tr>
         <?php endif; ?>

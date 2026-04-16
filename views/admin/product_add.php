@@ -13,6 +13,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
+    $description = trim($_POST['description'] ?? '');
     $image = '';
 
     // Xử lý upload ảnh
@@ -25,8 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$error && $name && $price > 0) {
-        $stmt = $conn->prepare("INSERT INTO products (name, price, image) VALUES (?, ?, ?)");
-        $stmt->bind_param('sds', $name, $price, $image);
+        $stmt = $conn->prepare("INSERT INTO products (name, price, image, description) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param('sdss', $name, $price, $image, $description);
         $stmt->execute();
         header('Location: product_san_pham.php');
         exit;
@@ -70,6 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label>Ảnh sản phẩm</label>
             <input type="file" name="image" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label>Mô tả sản phẩm</label>
+            <textarea name="description" rows="4" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;"></textarea>
         </div>
         <button type="submit" class="btn btn-success">Thêm sản phẩm</button>
         <a href="product_san_pham.php" class="btn btn-secondary">Quay lại</a>
