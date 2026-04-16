@@ -17,6 +17,17 @@ $rv = $conn->query("SELECT r.*, u.name as user_name FROM product_reviews r JOIN 
 if ($rv && $rv->num_rows > 0) {
     while ($row = $rv->fetch_assoc()) $reviews[] = $row;
 }
+
+// Kiểm tra quyền đánh giá: chỉ người đã mua mới được đánh giá
+$can_review = false;
+if (isset($_SESSION['user'])) {
+    $user_id = (int)$_SESSION['user']['id'];
+    // Kiểm tra user đã mua sản phẩm này chưa
+    $checkOrder = $conn->query("SELECT 1 FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.user_id = $user_id AND od.product_id = $id LIMIT 1");
+    if ($checkOrder && $checkOrder->num_rows > 0) {
+        $can_review = true;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -204,23 +215,27 @@ if ($rv && $rv->num_rows > 0) {
                     <?php endif; ?>
                 </div>
                 <?php if (isset($_SESSION['user'])): ?>
-                <form id="review-form" style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <input type="hidden" name="product_id" value="<?= $id ?>">
-                    <label>Đánh giá: </label>
-                    <select name="rating" required style="margin:0 8px 0 0;">
-                        <option value="">Chọn sao</option>
-                        <option value="5">★★★★★ - Tuyệt vời</option>
-                        <option value="4">★★★★☆ - Tốt</option>
-                        <option value="3">★★★☆☆ - Trung bình</option>
-                        <option value="2">★★☆☆☆ - Kém</option>
-                        <option value="1">★☆☆☆☆ - Rất tệ</option>
-                    </select>
-                    <input type="text" name="comment" placeholder="Viết bình luận..." style="width:220px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;" required>
-                    <button type="submit" class="btn-buy" style="padding:8px 18px;font-size:15px;">Gửi</button>
-                    <span id="review-msg" style="margin-left:10px;color:#388e3c;font-weight:500;"></span>
-                </form>
+                    <?php if ($can_review): ?>
+                        <form id="review-form" style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <input type="hidden" name="product_id" value="<?= $id ?>">
+                            <label>Đánh giá: </label>
+                            <select name="rating" required style="margin:0 8px 0 0;">
+                                <option value="">Chọn sao</option>
+                                <option value="5">★★★★★ - Tuyệt vời</option>
+                                <option value="4">★★★★☆ - Tốt</option>
+                                <option value="3">★★★☆☆ - Trung bình</option>
+                                <option value="2">★★☆☆☆ - Kém</option>
+                                <option value="1">★☆☆☆☆ - Rất tệ</option>
+                            </select>
+                            <input type="text" name="comment" placeholder="Viết bình luận..." style="width:220px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;" required>
+                            <button type="submit" class="btn-buy" style="padding:8px 18px;font-size:15px;">Gửi</button>
+                            <span id="review-msg" style="margin-left:10px;color:#388e3c;font-weight:500;"></span>
+                        </form>
+                    <?php else: ?>
+                        <div style="margin-top:12px;color:#888;">Chỉ khách đã mua sản phẩm này mới được đánh giá.</div>
+                    <?php endif; ?>
                 <?php else: ?>
-                <div style="margin-top:12px;color:#888;">Vui lòng <a href="login.php">đăng nhập</a> để đánh giá.</div>
+                    <div style="margin-top:12px;color:#888;">Vui lòng <a href="login.php">đăng nhập</a> để đánh giá.</div>
                 <?php endif; ?>
             </div>
             </div>
