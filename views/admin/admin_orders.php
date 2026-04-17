@@ -1,4 +1,3 @@
-
 <?php
 require_once __DIR__ . '/../../configs/env.php';
 require_once __DIR__ . '/../../configs/helper.php';
@@ -83,6 +82,9 @@ $result = $conn->query($sql);
                         <?php else: ?>
                             <span class="text-success">Hoàn tất</span>
                         <?php endif; ?>
+                        <?php if ($st === 'ĐÃ HUỶ'): ?>
+                            <a href="delete_order.php?order_id=<?= $order['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xoá đơn này?')">Xoá đơn</a>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <!-- Hiển thị danh sách sản phẩm trong đơn hàng -->
@@ -101,12 +103,12 @@ $result = $conn->query($sql);
                             <tbody>
                             <?php
                             $order_id = (int)$order['id'];
-                            $details = $conn->query("SELECT od.*, p.name, p.image FROM order_details od JOIN products p ON od.product_id = p.id WHERE od.order_id = $order_id");
+                            $details = $conn->query("SELECT * FROM order_details WHERE order_id = $order_id");
                             if ($details && $details->num_rows > 0):
                                 while ($d = $details->fetch_assoc()): ?>
                                     <tr>
-                                        <td style="text-align:center;padding:8px 4px;border-bottom:1px solid #f0f0f0;"><img src="<?= BASE_ASSETS_UPLOADS . $d['image'] ?>" alt="<?= htmlspecialchars($d['name']) ?>" style="width:54px;height:54px;object-fit:cover;border-radius:7px;border:1px solid #e0e0e0;"></td>
-                                        <td style="padding:8px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle;"> <?= htmlspecialchars($d['name']) ?> </td>
+                                        <td style="text-align:center;padding:8px 4px;border-bottom:1px solid #f0f0f0;"><img src="<?= BASE_ASSETS_UPLOADS . $d['product_image'] ?>" alt="<?= htmlspecialchars($d['product_name']) ?>" style="width:54px;height:54px;object-fit:cover;border-radius:7px;border:1px solid #e0e0e0;"></td>
+                                        <td style="padding:8px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle;"> <?= htmlspecialchars($d['product_name']) ?> </td>
                                         <td style="text-align:center;padding:8px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle;"> <?= $d['quantity'] ?> </td>
                                     </tr>
                                 <?php endwhile; else: ?>

@@ -128,6 +128,9 @@ if (isset($_SESSION['user'])) {
             <div class="product-detail-info">
                 <h2><?= $product['name'] ?></h2>
                 <div class="product-detail-price">Giá: <?= number_format($product['price']) ?> VNĐ</div>
+                <div class="product-detail-stock" style="margin:10px 0 10px 0;font-size:15px;color:#1976d2;">
+                    Số lượng còn lại: <b><?= $product['quantity'] ?></b>
+                </div>
                 <?php if (!empty($product['description'])): ?>
                 <div class="product-detail-description" style="margin-top:18px;font-size:15px;line-height:1.7;color:#444;background:#f8f9fa;padding:16px 18px;border-radius:8px;">
                     <b>Mô tả sản phẩm:</b><br>
@@ -163,15 +166,19 @@ if (isset($_SESSION['user'])) {
                 document.getElementById('add-to-cart-form').onsubmit = function(e) {
                     e.preventDefault();
                     var quantity = document.getElementById('quantity').value;
-                    fetch('<?= BASE_URL ?>/controllers/cart.php', {
+                    fetch('addtocart.php', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body: 'product_id=<?= $id ?>&quantity=' + encodeURIComponent(quantity)
+                        body: 'id=<?= $id ?>&name=' + encodeURIComponent('<?= addslashes($product['name']) ?>') + '&price=<?= $product['price'] ?>&quantity=' + encodeURIComponent(quantity)
                     })
                     .then(res => res.json())
                     .then(data => {
-                        showCartToast(data.message || '🛒 Đã thêm vào giỏ hàng!', data.success);
-                        updateCartCount();
+                        if (data.status === 'error') {
+                            showCartToast(data.message || 'Đã quá số lượng', false);
+                        } else {
+                            showCartToast(data.message || '🛒 Đã thêm vào giỏ hàng!', true);
+                            updateCartCount();
+                        }
                     })
                     .catch(() => {
                         showCartToast('❌ Có lỗi xảy ra!', false);
@@ -179,7 +186,12 @@ if (isset($_SESSION['user'])) {
                 };
                 // ===== NÚT MUA NGAY (CHUẨN) =====
                 document.getElementById('buy-now').onclick = function() {
-                    var quantity = document.getElementById('quantity').value;
+                    var quantity = parseInt(document.getElementById('quantity').value);
+                    var stock = parseInt(<?= (int)$product['quantity'] ?>);
+                    if (quantity > stock) {
+                        showCartToast('Đã quá số lượng', false);
+                        return;
+                    }
                     window.location.href = 'checkout.php?id=<?= $product['id'] ?>&quantity=' + quantity;
                 };
                 // Cập nhật số lượng giỏ hàng khi vào trang

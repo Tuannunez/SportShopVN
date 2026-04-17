@@ -26,6 +26,7 @@ if ($id > 0) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
     $name = trim($_POST['name'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
+    $quantity = intval($_POST['quantity'] ?? $product['quantity']);
     $description = trim($_POST['description'] ?? $product['description']);
     $image = $product['image'];
 
@@ -39,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
     }
 
     if (!$error && $name && $price > 0) {
-        $stmt = $conn->prepare("UPDATE products SET name=?, price=?, image=?, description=? WHERE id=?");
-        $stmt->bind_param('sdssi', $name, $price, $image, $description, $id);
+        $stmt = $conn->prepare("UPDATE products SET name=?, price=?, quantity=?, image=?, description=? WHERE id=?");
+        $stmt->bind_param('sdissi', $name, $price, $quantity, $image, $description, $id);
         $stmt->execute();
         header('Location: product_san_pham.php');
         exit;
@@ -81,6 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
         <div class="form-group">
             <label>Giá</label>
             <input type="number" name="price" min="0" step="1000" value="<?= htmlspecialchars($product['price']) ?>" required>
+        </div>
+        <div class="form-group">
+            <label>Số lượng sản phẩm</label>
+            <input type="number" name="quantity" min="0" value="<?= htmlspecialchars($product['quantity']) ?>" required>
         </div>
         <div class="form-group">
             <label>Ảnh sản phẩm</label>

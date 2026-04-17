@@ -1,13 +1,21 @@
 <?php
 session_start();
 
+require_once __DIR__ . '/../../configs/env.php';
+
 $id = $_POST['id'];
 $action = $_POST['action'];
 
 if (isset($_SESSION['cart'][$id])) {
 
     if ($action == 'increase') {
-        $_SESSION['cart'][$id]['qty']++;
+        // Kiểm tra tồn kho
+        $result = $conn->query("SELECT quantity FROM products WHERE id = " . (int)$id);
+        $row = $result ? $result->fetch_assoc() : null;
+        $stock = $row ? (int)$row['quantity'] : 0;
+        if ($_SESSION['cart'][$id]['qty'] < $stock) {
+            $_SESSION['cart'][$id]['qty']++;
+        }
     }
 
     if ($action == 'decrease') {

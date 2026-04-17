@@ -23,12 +23,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $order_id = $conn->insert_id;
         // Lưu chi tiết sản phẩm vào bảng order_details
         if (!empty($_SESSION['cart'])) {
-            foreach ($_SESSION['cart'] as $item) {
-                $product_id = $item['id'];
-                $quantity = $item['quantity'];
+            foreach ($_SESSION['cart'] as $product_id => $item) {
+                $quantity = isset($item['qty']) ? $item['qty'] : (isset($item['quantity']) ? $item['quantity'] : 1);
                 $price = $item['price'];
-                $stmtDetail = $conn->prepare("INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
-                $stmtDetail->bind_param('iiid', $order_id, $product_id, $quantity, $price);
+                // Lấy tên và ảnh sản phẩm tại thời điểm đặt hàng
+                $productInfo = $conn->query("SELECT name, image, quantity FROM products WHERE id = " . (int)$product_id);
+                $row = $productInfo ? $productInfo->fetch_assoc() : null;
+                $stock = $row ? (int)$row['quantity'] : 0;
+                $product_name = $row ? $row['name'] : '';
+                $product_image = $row ? $row['image'] : '';
+                if ($quantity > $stock) {
+                    echo "<div style='color:red;text-align:center;margin:40px;'>Sản phẩm ID $product_id không đủ số lượng! Đặt hàng thất bại.</div>";
+                    exit;
+                }
+                // Trừ số lượng sản phẩm
+                $conn->query("UPDATE products SET quantity = quantity - $quantity WHERE id = $product_id");
+                // Lưu cả tên và ảnh vào order_details (cần có cột product_name, product_image)
+                $stmtDetail = $conn->prepare("INSERT INTO order_details (order_id, product_id, product_name, product_image, quantity, price) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmtDetail->bind_param('iissid', $order_id, $product_id, $product_name, $product_image, $quantity, $price);
                 $stmtDetail->execute();
             }
         }

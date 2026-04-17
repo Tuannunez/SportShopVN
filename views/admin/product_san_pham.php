@@ -43,6 +43,7 @@ $result = $conn->query($sql);
                 <th>ID</th>
                 <th>Tên sản phẩm</th>
                 <th>Giá</th>
+                <th>Số lượng</th>
                 <th>Ảnh</th>
                 <th>Ngày tạo</th>
                 <th>Hành động</th>
@@ -54,6 +55,7 @@ $result = $conn->query($sql);
                 <td><?= $row['id'] ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
                 <td><?= number_format($row['price']) ?>đ</td>
+                <td><?= $row['quantity'] ?></td>
                 <td>
                     <?php if (!empty($row['image'])): ?>
                         <img src="<?= BASE_ASSETS_UPLOADS . $row['image'] ?>" alt="<?= htmlspecialchars($row['name']) ?>" width="60">

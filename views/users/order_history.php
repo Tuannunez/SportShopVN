@@ -54,7 +54,7 @@ $result = $conn->query($sql);
                             <?php
                             // Lấy tất cả sản phẩm trong đơn
                             $order_id = (int)$order['id'];
-                            $details = $conn->query("SELECT od.*, p.name, p.image FROM order_details od JOIN products p ON od.product_id = p.id WHERE od.order_id = $order_id");
+                            $details = $conn->query("SELECT * FROM order_details WHERE order_id = $order_id");
                             if ($details && $details->num_rows > 0): ?>
                                 <div style="margin-top:6px;">
                                     <b style="font-size:13px;">Sản phẩm:</b>
@@ -62,12 +62,12 @@ $result = $conn->query($sql);
                                         <?php while ($d = $details->fetch_assoc()): ?>
                                             <div style="display:flex;align-items:center;gap:6px;background:#f8f9fa;padding:4px 8px;border-radius:6px;border:1px solid #eee;min-width:0;max-width:180px;">
                                                 <img 
-                                                    src="<?= BASE_ASSETS_UPLOADS . $d['image'] ?>" 
-                                                    alt="<?= htmlspecialchars($d['name']) ?>"
+                                                    src="<?= BASE_ASSETS_UPLOADS . $d['product_image'] ?>" 
+                                                    alt="<?= htmlspecialchars($d['product_name']) ?>"
                                                     style="width:32px;height:32px;object-fit:cover;border-radius:5px;border:1px solid #e0e0e0;"
                                                 >
                                                 <span style="font-size:12px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                    <?= htmlspecialchars($d['name']) ?> x <?= $d['quantity'] ?>
+                                                    <?= htmlspecialchars($d['product_name']) ?> x <?= $d['quantity'] ?>
                                                 </span>
                                             </div>
                                         <?php endwhile; ?>
@@ -112,6 +112,10 @@ $result = $conn->query($sql);
                                    onclick="return confirm('Bạn chắc chắn muốn huỷ đơn này?')">
                                     Huỷ đơn
                                 </a>
+                            <?php endif; ?>
+
+                            <?php if ($st === 'ĐÃ HUỶ'): ?>
+                                <a href="delete_order.php?order_id=<?= $order['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xoá đơn này?')">Xoá đơn</a>
                             <?php endif; ?>
                         </td>
                     </tr>

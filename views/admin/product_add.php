@@ -13,6 +13,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
+    $quantity = intval($_POST['quantity'] ?? 0);
     $description = trim($_POST['description'] ?? '');
     $image = '';
 
@@ -26,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$error && $name && $price > 0) {
-        $stmt = $conn->prepare("INSERT INTO products (name, price, image, description) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param('sdss', $name, $price, $image, $description);
+        $stmt = $conn->prepare("INSERT INTO products (name, price, quantity, image, description) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param('sdis', $name, $price, $quantity, $image, $description);
         $stmt->execute();
         header('Location: product_san_pham.php');
         exit;
@@ -67,6 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label>Giá</label>
             <input type="number" name="price" min="0" step="1000" required>
+        </div>
+        <div class="form-group">
+            <label>Số lượng sản phẩm</label>
+            <input type="number" name="quantity" min="0" required>
         </div>
         <div class="form-group">
             <label>Ảnh sản phẩm</label>
