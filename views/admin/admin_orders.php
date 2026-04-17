@@ -2,12 +2,10 @@
 <?php
 require_once __DIR__ . '/../../configs/env.php';
 require_once __DIR__ . '/../../configs/helper.php';
-// Kiểm tra quyền admin
 if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
     exit;
 }
-// Lấy danh sách đơn hàng
 $sql = "SELECT * FROM orders ORDER BY created_at DESC";
 $result = $conn->query($sql);
 ?>

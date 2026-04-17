@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../../configs/env.php';
 require_once __DIR__ . '/../../configs/helper.php';
 
-// Biến lưu lỗi
 $login_error = '';
 if (isset($_POST['login'])) {
     $email = trim($_POST['email']);
