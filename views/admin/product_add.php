@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="product_san_pham.php" class="active">Sản phẩm</a>
     <a href="#">Danh mục</a>
     <a href="#">Đơn hàng</a>
-    <a href="#">User</a>
+    <a href="#">Tài khoản</a>
     <a href="logout.php">Đăng xuất</a>
 </div>
 <div class="main">

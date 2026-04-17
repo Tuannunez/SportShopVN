@@ -25,7 +25,7 @@ if (!isset($_SESSION['admin'])) {
     <a href="product_san_pham.php">Sản phẩm</a>
     <a href="#">Danh mục</a>
     <a href="admin_orders.php">Đơn hàng</a>
-    <a href="#">User</a>
+    <a href="admin_users.php">Tài khoản</a>
     <a href="logout.php">Đăng xuất</a>
 </div>
 
