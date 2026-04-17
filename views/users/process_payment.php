@@ -21,7 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param('isssssi', $user_id, $name, $phone, $address, $order_note, $payment_method, $totalAmount);
     if ($stmt->execute()) {
         $order_id = $conn->insert_id;
-        // TODO: Lưu chi tiết sản phẩm vào bảng order_items nếu có
+        // Lưu chi tiết sản phẩm vào bảng order_details
+        if (!empty($_SESSION['cart'])) {
+            foreach ($_SESSION['cart'] as $item) {
+                $product_id = $item['id'];
+                $quantity = $item['quantity'];
+                $price = $item['price'];
+                $stmtDetail = $conn->prepare("INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+                $stmtDetail->bind_param('iiid', $order_id, $product_id, $quantity, $price);
+                $stmtDetail->execute();
+            }
+        }
+        // Xoá giỏ hàng sau khi đặt hàng thành công
+        unset($_SESSION['cart']);
         header("Location: success.php?order_id=" . $order_id);
         exit;
     } else {

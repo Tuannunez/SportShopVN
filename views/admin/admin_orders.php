@@ -63,6 +63,7 @@ $result = $conn->query($sql);
                         elseif ($st === 'ĐANG XỬ LÍ') { $badge = 'bg-warning text-dark'; $txt = 'Đang xử lí'; }
                         elseif ($st === 'ĐANG GIAO') { $badge = 'bg-info text-white'; $txt = 'Đang giao'; }
                         elseif ($st === 'ĐÃ GIAO') { $badge = 'bg-success text-white'; $txt = 'Đã giao'; }
+                        elseif ($st === 'ĐÃ HUỶ') { $badge = 'bg-danger text-white'; $txt = 'Khách đã huỷ'; }
                         else { $txt = $st; }
                         ?>
                         <span class="badge <?= $badge ?>" style="font-size:15px;min-width:90px;display:inline-block;">
@@ -72,7 +73,7 @@ $result = $conn->query($sql);
                     <td><?= isset($order['created_at']) ? date('d/m/Y H:i', strtotime($order['created_at'])) : '' ?></td>
                     <td>
                         <?php if ($st === 'CHỜ DUYỆT'): ?>
-                            <button class="btn btn-sm btn-primary" onclick="updateStatus(<?= $order['id'] ?>, 'processing', this)">Duyệt đơn</button>
+                            <button class="btn btn-sm btn-primary" onclick="updateStatus(<?= $order['id'] ?>, 'approve', this)">Duyệt đơn</button>
                         <?php elseif ($st === 'ĐANG XỬ LÍ'): ?>
                             <button class="btn btn-sm btn-info" onclick="updateStatus(<?= $order['id'] ?>, 'approve', this)">Chuyển Đang giao</button>
                         <?php elseif ($st === 'ĐANG GIAO'): ?>
@@ -80,6 +81,38 @@ $result = $conn->query($sql);
                         <?php else: ?>
                             <span class="text-success">Hoàn tất</span>
                         <?php endif; ?>
+                    </td>
+                </tr>
+                <!-- Hiển thị danh sách sản phẩm trong đơn hàng -->
+                <tr>
+                    <td colspan="8" style="padding:0;background:#fafbfc;">
+                        <div style="padding:12px 18px 8px 18px;">
+                        <b>Sản phẩm:</b>
+                        <table style="width:100%;margin-top:8px;border:1px solid #e0e0e0;background:#fff;border-radius:8px;overflow:hidden;">
+                            <thead>
+                                <tr style="background:#f5f5f5;">
+                                    <th style="padding:8px 4px;text-align:center;border-bottom:1px solid #e0e0e0;">Ảnh</th>
+                                    <th style="padding:8px 4px;text-align:left;border-bottom:1px solid #e0e0e0;">Tên sản phẩm</th>
+                                    <th style="padding:8px 4px;text-align:center;border-bottom:1px solid #e0e0e0;">Số lượng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <?php
+                            $order_id = (int)$order['id'];
+                            $details = $conn->query("SELECT od.*, p.name, p.image FROM order_details od JOIN products p ON od.product_id = p.id WHERE od.order_id = $order_id");
+                            if ($details && $details->num_rows > 0):
+                                while ($d = $details->fetch_assoc()): ?>
+                                    <tr>
+                                        <td style="text-align:center;padding:8px 4px;border-bottom:1px solid #f0f0f0;"><img src="<?= BASE_ASSETS_UPLOADS . $d['image'] ?>" alt="<?= htmlspecialchars($d['name']) ?>" style="width:54px;height:54px;object-fit:cover;border-radius:7px;border:1px solid #e0e0e0;"></td>
+                                        <td style="padding:8px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle;"> <?= htmlspecialchars($d['name']) ?> </td>
+                                        <td style="text-align:center;padding:8px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle;"> <?= $d['quantity'] ?> </td>
+                                    </tr>
+                                <?php endwhile; else: ?>
+                                    <tr><td colspan="3" style="text-align:center;padding:12px 0;">Không có sản phẩm nào.</td></tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                        </div>
                     </td>
                 </tr>
                 <?php endwhile; else: ?>

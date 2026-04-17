@@ -26,6 +26,7 @@ if ($id > 0) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
     $name = trim($_POST['name'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
+    $description = trim($_POST['description'] ?? $product['description']);
     $image = $product['image'];
 
     // Xử lý upload ảnh mới nếu có
@@ -38,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
     }
 
     if (!$error && $name && $price > 0) {
-        $stmt = $conn->prepare("UPDATE products SET name=?, price=?, image=? WHERE id=?");
-        $stmt->bind_param('sdsi', $name, $price, $image, $id);
+        $stmt = $conn->prepare("UPDATE products SET name=?, price=?, image=?, description=? WHERE id=?");
+        $stmt->bind_param('sdssi', $name, $price, $image, $description, $id);
         $stmt->execute();
         header('Location: product_san_pham.php');
         exit;
@@ -87,6 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
                 <img src="<?= BASE_ASSETS_UPLOADS . $product['image'] ?>" alt="Ảnh hiện tại" width="80" style="display:block; margin-bottom:8px;">
             <?php endif; ?>
             <input type="file" name="image" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label>Mô tả sản phẩm</label>
+            <textarea name="description" rows="4" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;">
+<?= htmlspecialchars($product['description'] ?? '') ?></textarea>
         </div>
         <button type="submit" class="btn btn-warning">Cập nhật</button>
         <a href="product_san_pham.php" class="btn btn-secondary">Quay lại</a>
