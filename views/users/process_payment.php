@@ -13,8 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = $_POST['shipping_address'] ?? '';
     $order_note = $_POST['order_note'] ?? '';
     $payment_method = $_POST['payment_method'] ?? 'cod';
-    // Giả sử tổng tiền lấy từ session/cart, ở đây demo tạm 500000
-    $totalAmount = 500000;
+    // Tính tổng tiền thực tế từ giỏ hàng
+    $totalAmount = 0;
+    if (!empty($_SESSION['cart'])) {
+        foreach ($_SESSION['cart'] as $item) {
+            $qty = isset($item['qty']) ? $item['qty'] : (isset($item['quantity']) ? $item['quantity'] : 1);
+            $totalAmount += $item['price'] * $qty;
+        }
+    }
 
     // Lưu đơn hàng
     $stmt = $conn->prepare("INSERT INTO orders (user_id, customer_name, customer_phone, shipping_address, order_note, payment_method, total_amount) VALUES (?, ?, ?, ?, ?, ?, ?)");
