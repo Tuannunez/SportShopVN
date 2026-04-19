@@ -192,7 +192,8 @@ if (isset($_SESSION['user'])) {
                         showCartToast('Đã quá số lượng', false);
                         return;
                     }
-                    window.location.href = 'checkout.php?id=<?= $product['id'] ?>&quantity=' + quantity;
+                    // Chuyển hướng sang buy_now.php để thêm vào giỏ và chuyển sang checkout
+                    window.location.href = 'buy_now.php?id=<?= $product['id'] ?>&quantity=' + quantity;
                 };
                 // Cập nhật số lượng giỏ hàng khi vào trang
                 document.addEventListener('DOMContentLoaded', updateCartCount);
