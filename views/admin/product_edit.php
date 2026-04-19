@@ -2,6 +2,13 @@
 require_once __DIR__ . '/../../configs/env.php';
 require_once __DIR__ . '/../../configs/helper.php';
 
+// Lấy danh sách danh mục
+$categories = [];
+$catResult = $conn->query("SELECT * FROM categories ORDER BY name ASC");
+if ($catResult && $catResult->num_rows > 0) {
+    while ($row = $catResult->fetch_assoc()) $categories[] = $row;
+}
+
 // Kiểm tra quyền admin
 if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
@@ -27,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
     $name = trim($_POST['name'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
     $quantity = intval($_POST['quantity'] ?? $product['quantity']);
+    $category_id = isset($_POST['category_id']) ? (int)$_POST['category_id'] : $product['category_id'];
     $description = trim($_POST['description'] ?? $product['description']);
     $image = $product['image'];
 
@@ -40,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
     }
 
     if (!$error && $name && $price > 0) {
-        $stmt = $conn->prepare("UPDATE products SET name=?, price=?, quantity=?, image=?, description=? WHERE id=?");
-        $stmt->bind_param('sdissi', $name, $price, $quantity, $image, $description, $id);
+        $stmt = $conn->prepare("UPDATE products SET name=?, price=?, quantity=?, image=?, description=?, category_id=? WHERE id=?");
+        $stmt->bind_param('sdissii', $name, $price, $quantity, $image, $description, $category_id, $id);
         $stmt->execute();
         header('Location: product_san_pham.php');
         exit;
@@ -78,6 +86,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $product) {
         <div class="form-group">
             <label>Tên sản phẩm</label>
             <input type="text" name="name" value="<?= htmlspecialchars($product['name']) ?>" required>
+        </div>
+        <div class="form-group">
+            <label>Danh mục</label>
+            <select name="category_id" required>
+                <option value="">-- Chọn danh mục --</option>
+                <?php foreach ($categories as $cat): ?>
+                    <option value="<?= $cat['id'] ?>" <?= ($product['category_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="form-group">
             <label>Giá</label>

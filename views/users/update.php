@@ -19,10 +19,10 @@ if (isset($_SESSION['cart'][$id])) {
     }
 
     if ($action == 'decrease') {
-        $_SESSION['cart'][$id]['qty']--;
-        if ($_SESSION['cart'][$id]['qty'] <= 0) {
-            unset($_SESSION['cart'][$id]);
+        if ($_SESSION['cart'][$id]['qty'] > 1) {
+            $_SESSION['cart'][$id]['qty']--;
         }
+        // Nếu số lượng là 1 thì không giảm nữa, không xóa sản phẩm
     }
 
     if ($action == 'remove') {

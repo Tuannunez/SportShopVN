@@ -79,6 +79,13 @@ showSlide(0); startAuto();
 </script>
 
 <?php
+// Lấy danh sách danh mục
+$category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$categories = [];
+$catResult = $conn->query("SELECT * FROM categories ORDER BY name ASC");
+if ($catResult && $catResult->num_rows > 0) {
+    while ($row = $catResult->fetch_assoc()) $categories[] = $row;
+}
 // Lấy dữ liệu lọc
 // Lấy dữ liệu lọc và sắp xếp
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
@@ -99,6 +106,9 @@ if ($location !== '') {
 if ($color !== '') {
     $color_sql = mysqli_real_escape_string($conn, $color);
     $sql .= " AND color = '$color_sql'";
+}
+if ($category_id > 0) {
+    $sql .= " AND category_id = $category_id";
 }
 // Sắp xếp
 if ($sort == 'sales') $sql .= " ORDER BY view_count DESC";
@@ -125,6 +135,14 @@ $result = $conn->query($sql);
                 <div style="font-weight:500;margin-bottom:10px;">Màu sắc</div>
                 <label style="display:block;margin-bottom:10px;font-size:14px;cursor:pointer;color:#333;"><input type="radio" name="color" value="Trắng" <?= $color=='Trắng'?'checked':'' ?> onchange="this.form.submit()"> Trắng</label>
                 <label style="display:block;margin-bottom:10px;font-size:14px;cursor:pointer;color:#333;"><input type="radio" name="color" value="Xanh" <?= $color=='Xanh'?'checked':'' ?> onchange="this.form.submit()"> Xanh</label>
+            </div>
+            <div style="margin-bottom:18px;">
+                <div style="font-weight:500;margin-bottom:10px;">Danh mục</div>
+                <?php foreach($categories as $cat): ?>
+                    <label style="display:block;margin-bottom:10px;font-size:14px;cursor:pointer;color:#333;">
+                        <input type="radio" name="category_id" value="<?= $cat['id'] ?>" <?= $category_id==$cat['id']?'checked':'' ?> onchange="this.form.submit()"> <?= htmlspecialchars($cat['name']) ?>
+                    </label>
+                <?php endforeach; ?>
             </div>
             <a href="index.php" style="color:#ee4d2d;text-decoration:none;font-size:13px;">Xóa tất cả</a>
             <!-- Giữ lại keyword khi lọc -->

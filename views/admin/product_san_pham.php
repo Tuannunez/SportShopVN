@@ -13,7 +13,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     header('Location: product_san_pham.php');
     exit;
 }
-$sql = "SELECT * FROM products ORDER BY id ASC";
+$sql = "SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.id ASC";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
@@ -29,7 +29,7 @@ $result = $conn->query($sql);
     <h2>SportShopVN</h2>
     <a href="dashboard.php" class="active">Dashboard</a>
     <a href="product_san_pham.php">Sản phẩm</a>
-    <a href="#">Danh mục</a>
+    <a href="category_list.php">Danh mục</a>
     <a href="admin_orders.php">Đơn hàng</a>
     <a href="admin_users.php">Tài khoản</a>
     <a href="logout.php">Đăng xuất</a>
@@ -46,6 +46,7 @@ $result = $conn->query($sql);
                 <th>Số lượng</th>
                 <th>Ảnh</th>
                 <th>Ngày tạo</th>
+                <th>Danh mục</th>
                 <th>Hành động</th>
             </tr>
         </thead>
@@ -64,6 +65,7 @@ $result = $conn->query($sql);
                     <?php endif; ?>
                 </td>
                 <td><?= $row['created_at'] ?></td>
+                <td><?= htmlspecialchars($row['category_name'] ?? 'Chưa chọn') ?></td>
                 <td>
                     <a href="product_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm">Sửa</a>
                     <a href="?delete=<?= $row['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Xóa sản phẩm này?')">Xóa</a>

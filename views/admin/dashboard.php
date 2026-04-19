@@ -23,7 +23,7 @@ if (!isset($_SESSION['admin'])) {
     <h2>SportShopVN</h2>
     <a href="dashboard.php" class="active">Dashboard</a>
     <a href="product_san_pham.php">Sản phẩm</a>
-    <a href="#">Danh mục</a>
+    <a href="category_list.php">Danh mục</a>
     <a href="admin_orders.php">Đơn hàng</a>
     <a href="admin_users.php">Tài khoản</a>
     <a href="logout.php">Đăng xuất</a>
