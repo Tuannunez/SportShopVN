@@ -73,17 +73,18 @@ $result = $conn->query($sql);
                     </td>
                     <td><?= isset($order['created_at']) ? date('d/m/Y H:i', strtotime($order['created_at'])) : '' ?></td>
                     <td>
+                        <a href="order_detail.php?order_id=<?= $order['id'] ?>" class="btn btn-sm btn-outline-secondary mb-1">Xem chi tiết</a><br>
                         <?php if ($st === 'CHỜ DUYỆT'): ?>
-                            <button class="btn btn-sm btn-primary" onclick="updateStatus(<?= $order['id'] ?>, 'approve', this)">Duyệt đơn</button>
+                            <button class="btn btn-sm btn-primary mt-1" onclick="updateStatus(<?= $order['id'] ?>, 'approve', this)">Duyệt đơn</button>
                         <?php elseif ($st === 'ĐANG XỬ LÍ'): ?>
-                            <button class="btn btn-sm btn-info" onclick="updateStatus(<?= $order['id'] ?>, 'approve', this)">Chuyển Đang giao</button>
+                            <button class="btn btn-sm btn-info mt-1" onclick="updateStatus(<?= $order['id'] ?>, 'approve', this)">Chuyển Đang giao</button>
                         <?php elseif ($st === 'ĐANG GIAO'): ?>
-                            <button class="btn btn-sm btn-success" onclick="updateStatus(<?= $order['id'] ?>, 'done', this)">Chuyển Đã giao</button>
+                            <button class="btn btn-sm btn-success mt-1" onclick="updateStatus(<?= $order['id'] ?>, 'done', this)">Chuyển Đã giao</button>
                         <?php else: ?>
-                            <span class="text-success">Hoàn tất</span>
+                            <span class="text-success mt-1">Hoàn tất</span>
                         <?php endif; ?>
                         <?php if ($st === 'ĐÃ HUỶ'): ?>
-                            <a href="delete_order.php?order_id=<?= $order['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xoá đơn này?')">Xoá đơn</a>
+                            <a href="delete_order.php?order_id=<?= $order['id'] ?>" class="btn btn-sm btn-danger mt-1" onclick="return confirm('Bạn chắc chắn muốn xoá đơn này?')">Xoá đơn</a>
                         <?php endif; ?>
                     </td>
                 </tr>

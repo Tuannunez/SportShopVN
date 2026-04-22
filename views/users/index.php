@@ -42,8 +42,8 @@ $isLogin = isset($_SESSION['user']);
 <div class="banner-slider" style="max-width:1200px;height:220px;margin:30px auto 0 auto;position:relative;overflow:hidden;border-radius:14px;box-shadow:0 4px 24px 0 rgba(0,0,0,0.09);">
     <div class="slider-wrapper" id="slider-wrapper" style="display:flex;transition:transform 0.7s cubic-bezier(.4,0,.2,1);width:400%;height:100%;">
         <img src="<?= BASE_URL ?>/assets/images/banner1.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 1">
+        <img src="<?= BASE_URL ?>/assets/images/banner2.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 2">
         <img src="<?= BASE_URL ?>/assets/images/banner3.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 3">
-        <img src="<?= BASE_URL ?>/assets/images/banner5.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 5">
         <img src="<?= BASE_URL ?>/assets/images/banner4.jpg" style="width:100%;height:100%;object-fit:cover;aspect-ratio:16/5;" alt="Banner 4">
     </div>
     <button id="prev-banner" style="position:absolute;top:50%;left:18px;transform:translateY(-50%);background:rgba(0,0,0,0.3);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:2;">&#10094;</button>
@@ -183,7 +183,7 @@ $result = $conn->query($sql);
                 <div class="product-name"><?= htmlspecialchars($row['name']) ?></div>
                 <div class="product-price">Giá: <?= number_format($row['price']) ?>đ</div>
                 <a href="product_detail.php?id=<?= $row['id'] ?>" class="detail-btn">Xem chi tiết</a>
-                <button class="buy-btn">Mua ngay</button>
+                <a href="checkout.php?product_id=<?= $row['id'] ?>" class="buy-btn">Mua ngay</a>
             <style>
             .detail-btn {
                 display: inline-block;

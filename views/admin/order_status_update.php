@@ -17,20 +17,31 @@ if (!$order_id || !$action) {
 }
 
 $status = '';
+$is_paid = null;
 switch ($action) {
     case 'approve':
         $status = 'ĐANG GIAO';
         break;
     case 'done':
         $status = 'ĐÃ GIAO';
+        $is_paid = 1;
+        break;
+    case 'cancel':
+        $status = 'ĐÃ HUỶ';
+        $is_paid = 0;
         break;
     default:
         echo json_encode(['success'=>false, 'message'=>'Hành động không hợp lệ!']);
         exit;
 }
 
-$stmt = $conn->prepare("UPDATE orders SET status=? WHERE id=?");
-$stmt->bind_param('si', $status, $order_id);
+if ($is_paid !== null) {
+    $stmt = $conn->prepare("UPDATE orders SET status=?, is_paid=? WHERE id=?");
+    $stmt->bind_param('sii', $status, $is_paid, $order_id);
+} else {
+    $stmt = $conn->prepare("UPDATE orders SET status=? WHERE id=?");
+    $stmt->bind_param('si', $status, $order_id);
+}
 if ($stmt->execute()) {
     echo json_encode(['success'=>true, 'message'=>'Cập nhật trạng thái thành công!', 'status'=>$status]);
 } else {

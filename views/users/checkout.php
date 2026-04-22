@@ -57,22 +57,6 @@ include __DIR__ . '/header_user.php';
                                 <textarea class="form-control" id="order_note" name="order_note" rows="2" placeholder="Ghi chú về thời gian giao hàng hoặc chỉ dẫn đường đi..."></textarea>
                             </div>
                             
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Phương thức thanh toán</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" checked>
-                                    <label class="form-check-label" for="cod">Thanh toán khi nhận hàng (COD)</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="bank" value="bank">
-                                    <label class="form-check-label" for="bank">Chuyển khoản ngân hàng</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="e_wallet" value="e_wallet">
-                                    <label class="form-check-label" for="e_wallet">Ví điện tử (ZaloPay, Momo...)</label>
-                                </div>
-                            </div>
-                            
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-success btn-lg">Xác nhận Đặt hàng</button>
                             </div>
