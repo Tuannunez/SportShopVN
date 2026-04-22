@@ -28,7 +28,7 @@ $details = $conn->query("SELECT od.*, p.name, p.image FROM order_details od JOIN
     <a href="order_history.php" style="display:inline-block;margin-bottom:18px;background:#1976d2;color:#fff;padding:8px 18px;border-radius:7px;text-decoration:none;">← Quay lại lịch sử</a>
     <h2 style="margin-bottom:18px;">Chi tiết đơn hàng #<?= $order_id ?></h2>
     <div><b>Ngày đặt:</b> <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></div>
-    <div><b>Trạng thái:</b> <?= htmlspecialchars($order['status']) ?></div>
+    <div><b>Trạng thái:</b> <?= htmlspecialchars($order['status'] ?? '') ?></div>
     <div><b>Tổng tiền:</b> <span style="color:#e53935;font-weight:600;"><?= number_format($order['total_amount']) ?>đ</span></div>
     <div style="margin:18px 0 10px 0;font-weight:600;">Danh sách sản phẩm:</div>
     <table style="width:100%;border-collapse:collapse;">
@@ -47,13 +47,13 @@ $details = $conn->query("SELECT od.*, p.name, p.image FROM order_details od JOIN
             $details->data_seek(0);
             while ($d = $details->fetch_assoc()): ?>
             <tr>
-                <td style="text-align:center;padding:8px 6px;"><img src="<?= BASE_ASSETS_UPLOADS . $d['image'] ?>" alt="<?= htmlspecialchars($d['name']) ?>" style="width:60px;height:60px;object-fit:cover;border-radius:7px;"></td>
-                <td style="padding:8px 6px;"> <?= htmlspecialchars($d['name']) ?> </td>
+                <td style="text-align:center;padding:8px 6px;"><img src="<?= BASE_ASSETS_UPLOADS . ($d['image'] ?? '') ?>" alt="<?= htmlspecialchars($d['name'] ?? '') ?>" style="width:60px;height:60px;object-fit:cover;border-radius:7px;"></td>
+                <td style="padding:8px 6px;"> <?= htmlspecialchars($d['name'] ?? '') ?> </td>
                 <td style="text-align:center;"> <?= $d['quantity'] ?> </td>
                 <td style="text-align:right;"> <?= number_format($d['price']) ?>đ </td>
                 <td style="text-align:right;"> <?= number_format($d['price'] * $d['quantity']) ?>đ </td>
             </tr>
-            <?php if (strtoupper($order['status']) === 'ĐÃ GIAO' && isset($_SESSION['user'])): ?>
+            <?php if (strtoupper($order['status'] ?? '') === 'ĐÃ GIAO' && isset($_SESSION['user'])): ?>
             <tr>
                 <td colspan="5" style="background:#f8f9fa;padding:18px 18px 10px 18px;">
                     <b>Bình luận & đánh giá sản phẩm:</b>
